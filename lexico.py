@@ -11,7 +11,8 @@ tokens_principales = [
     'DELIMITADOR', 
     'COMILLAS', 
     'DOS_PUNTOS', 
-    'PUNTO'
+    'PUNTO',
+    'LOGICO'
 ]
 
 palabras_reservadas = {
@@ -37,6 +38,7 @@ t_SEPARADOR = r';'
 t_DELIMITADOR = r'\(|\)|\{|\}'  
 t_DOS_PUNTOS = r'\:'
 t_PUNTO = r'\.'
+t_LOGICO = r'&&|\|\||!'
 
 # Números enteros
 def t_ENTERO(t):
@@ -61,6 +63,9 @@ def t_COMILLAS(t):
     t.value = t.value[1:-1]
     return t
 
+def t_COMENTARIOS(t):
+    r'/\*.*?\*/'
+    pass
 
 # Manejar nuevas líneas
 def t_new_line(t):
@@ -69,10 +74,13 @@ def t_new_line(t):
 
 # Manejar errores
 def t_error(t):
-    print(f"Caracter ilegal '{t.value[0]}' en la línea {t.lexer.lineno}")
+    errores.append(f"Caracter ilegal '{t.value[0]}' en la línea {t.lexer.lineno}")
     t.lexer.skip(1)
 
 def analisis(input_code):
+    global errores
+    errores = []
+
     analizador = lex.lex()
     analizador.input(input_code)
 
@@ -92,4 +100,4 @@ def analisis(input_code):
         else:
             tokens_generados.append(tokens_str)
 
-    return tokens_generados, palabras_reservadas_detectadas
+    return tokens_generados, palabras_reservadas_detectadas, errores
