@@ -40,17 +40,19 @@ t_DOS_PUNTOS = r'\:'
 t_PUNTO = r'\.'
 t_LOGICO = r'&&|\|\||!'
 
-# Números enteros
-def t_ENTERO(t):
-    r'\d+'
-    t.value = int(t.value)
-    return t
 
 # Números decimales
 def t_FLOTANTE(t):
     r'\d+\.\d+'
     t.value = float(t.value)
     return t
+
+# Números enteros
+def t_ENTERO(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
+
 
 # Variables
 def t_VARIABLE(t):
