@@ -1,0 +1,14 @@
+if (a > 10) {
+    escribir: "Mayor que 10";
+} else {
+    escribir: "Menor o igual a 10";
+}
+
+for (val i = 0; i < 10; i = i + 1) {
+    escribir: i;
+}
+
+while (x < 100) {
+    x = x + 10;
+    escribir: x;
+}
