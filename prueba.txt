@@ -1,10 +1,11 @@
-if (a > 10) {
+func init {
+    if (a > 10) {
     escribir: "Mayor que 10";
 } else {
     escribir: "Menor o igual a 10";
 }
 
-for (val i = 0; i < 10; i = i + 1) {  /* otro comentario */
+for (i = 0; i < 10; i = i + 1) {  /* otro comentario */
     escribir: i;
 }
 
@@ -12,10 +13,11 @@ val x = 10;
 if (x > 5 && x < 20) {
     escribir "Numero valido";
 }
-val  prueba = 20.1;
+val prueba = 20.1;
 
 /* este es un comentario */
 while (x < 100) {
     x = x + 10;
     escribir: x;
+}
 }
