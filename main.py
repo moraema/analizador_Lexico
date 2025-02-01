@@ -1,95 +1,20 @@
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
-import ply.lex as lex
+from lexico import analisis
 
-# Definir tokens y palabras reservadas
-tokens = [
-    'ENTERO', 'FLOTANTE', 'VARIABLE', 'OPERADOR', 'ASIGNACION',
-    'COMPARACION', 'SEPARADOR', 'DELIMITADOR', 'COMILLAS', 'DOS_PUNTOS', 'PUNTO'
-] + list({
-    'if': 'IF', 'else': 'ELSE', 'while': 'WHILE', 'for': 'FOR',
-    'func': 'FUN', 'escribir': 'ESCRIBIR', 'leer': 'LEER', 'val': 'VAL'
-}.values())
-
-palabras_reservadas = {
-    'if': 'IF', 'else': 'ELSE', 'while': 'WHILE', 'for': 'FOR',
-    'func': 'FUN', 'escribir': 'ESCRIBIR', 'leer': 'LEER', 'val': 'VAL'
-}
-
-def t_VARIABLE(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = palabras_reservadas.get(t.value, 'VARIABLE')  # Verifica si es palabra reservada
-    return t
-
-def t_ENTERO(t):
-    r'\d+'
-    return t
-
-def t_FLOTANTE(t):
-    r'\d+\.\d+'
-    return t
-
-def t_OPERADOR(t):
-    r'[+\-*/]'
-    return t
-
-def t_ASIGNACION(t):
-    r'='  
-    return t
-
-def t_COMPARACION(t):
-    r'==|!=|<=|>=|<|>'
-    return t
-
-def t_SEPARADOR(t):
-    r';'
-    return t
-
-def t_DELIMITADOR(t):
-    r'[{}()]'
-    return t
-
-def t_COMILLAS(t):
-    r'"|\''
-    return t
-
-def t_DOS_PUNTOS(t):
-    r':'
-    return t
-
-def t_PUNTO(t):
-    r'\.'
-    return t
-
-def t_ignore_WHITESPACE(t):
-    r'\s+'
-    pass
-
-def t_error(t):
-    errores.append(f"Error léxico: '{t.value[0]}' en la posición {t.lexpos}")
-    t.lexer.skip(1)
-
-lexer = lex.lex()
-errores = []
 
 def analizar_codigo():
     global errores
     errores = []
     codigo = entrada_texto.get("1.0", tk.END)
-    lexer.input(codigo)
-    tokens_detectados = []
-    palabras_detectadas = []
-    
-    for tok in lexer:
-        tokens_detectados.append(f"{tok.type}: {tok.value}")
-        if tok.type in palabras_reservadas.values():
-            palabras_detectadas.append(tok.value)
-    
+   
+    tokens_detectados, palabras_reservadas_detectadas = analisis(codigo)
+
     salida_tokens.delete("1.0", tk.END)
     salida_tokens.insert(tk.END, "\n".join(tokens_detectados))
     
     salida_palabras.delete("1.0", tk.END)
-    salida_palabras.insert(tk.END, "\n".join(palabras_detectadas))
+    salida_palabras.insert(tk.END, "\n".join(palabras_reservadas_detectadas))
     
     salida_errores.delete("1.0", tk.END)
     salida_errores.insert(tk.END, "\n".join(errores))
