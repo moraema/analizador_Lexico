@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, scrolledtext
+from tkinter import filedialog, scrolledtext, ttk
 from lexico import analisis
-
 
 def analizar_codigo():
     global errores
@@ -43,19 +42,24 @@ btn_analizar.pack(side=tk.LEFT, padx=5)
 entrada_texto = scrolledtext.ScrolledText(root, height=10)
 entrada_texto.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
-label_tokens = tk.Label(root, text="Tokens Detectados")
-label_tokens.pack()
-salida_tokens = scrolledtext.ScrolledText(root, height=5)
+notebook = ttk.Notebook(root)
+notebook.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+frame_tokens = tk.Frame(notebook)
+frame_palabras = tk.Frame(notebook)
+frame_errores = tk.Frame(notebook)
+
+notebook.add(frame_tokens, text="Tokens Detectados")
+notebook.add(frame_palabras, text="Palabras Reservadas")
+notebook.add(frame_errores, text="Errores")
+
+salida_tokens = scrolledtext.ScrolledText(frame_tokens, height=10)
 salida_tokens.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
-label_palabras = tk.Label(root, text="Palabras Reservadas")
-label_palabras.pack()
-salida_palabras = scrolledtext.ScrolledText(root, height=3)
+salida_palabras = scrolledtext.ScrolledText(frame_palabras, height=10)
 salida_palabras.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
-label_errores = tk.Label(root, text="Errores")
-label_errores.pack()
-salida_errores = scrolledtext.ScrolledText(root, height=3)
+salida_errores = scrolledtext.ScrolledText(frame_errores, height=10)
 salida_errores.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
 root.mainloop()
