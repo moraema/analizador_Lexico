@@ -4,10 +4,17 @@ if (a > 10) {
     escribir: "Menor o igual a 10";
 }
 
-for (val i = 0; i < 10; i = i + 1) {
+for (val i = 0; i < 10; i = i + 1) {  /* otro comentario */
     escribir: i;
 }
 
+val x = 10;
+if (x > 5 && x < 20) {
+    escribir "Numero valido";
+}
+
+
+/* este es un comentario */
 while (x < 100) {
     x = x + 10;
     escribir: x;

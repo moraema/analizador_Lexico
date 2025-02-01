@@ -7,7 +7,7 @@ def analizar_codigo():
     errores = []
     codigo = entrada_texto.get("1.0", tk.END)
    
-    tokens_detectados, palabras_reservadas_detectadas = analisis(codigo)
+    tokens_detectados, palabras_reservadas_detectadas, errores_detectados = analisis(codigo)
 
     salida_tokens.delete("1.0", tk.END)
     salida_tokens.insert(tk.END, "\n".join(tokens_detectados))
@@ -16,7 +16,7 @@ def analizar_codigo():
     salida_palabras.insert(tk.END, "\n".join(palabras_reservadas_detectadas))
     
     salida_errores.delete("1.0", tk.END)
-    salida_errores.insert(tk.END, "\n".join(errores))
+    salida_errores.insert(tk.END, "\n".join(errores_detectados))
 
 def cargar_archivo():
     archivo = filedialog.askopenfilename(filetypes=[("Archivos de texto", "*.txt")])
