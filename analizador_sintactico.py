@@ -1,10 +1,9 @@
 import ply.yacc as yacc
-from lexico import tokens  # Asegúrate de que los tokens estén correctamente importados
+from lexico import tokens  
 
-# Reglas de la gramática
-precedence = (# Los operadores aritméticos
+precedence = (
     ('left', 'COMPARACION_LESS', 'COMPARACION_GREATER', 'COMPARACION_LESS_EQ', 'COMPARACION_GREATER_EQ'),  # Comparaciones
-    ('left', 'COMPARACION_EQ', 'COMPARACION_NEQ'),  # Comparaciones de igualdad
+    ('left', 'COMPARACION_EQ', 'COMPARACION_NEQ'), 
      ('left', 'OPERADOR'),  
 )
 
@@ -21,18 +20,21 @@ def p_bloque(p):
               | instruccion'''
     if len(p) == 3:  # Si hay dos elementos, p[2] es un bloque adicional
         p[0] = ('bloque', [p[1]] + p[2][1])
-    else:  # Si solo hay una instrucción
+    else:  # solo hay una instrucción
         p[0] = ('bloque', [p[1]])
 
 def p_instruccion(p):
     '''instruccion : ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+                   | LEER VARIABLE SEPARADOR
                    | declaracion_variable
                    | estructura_if
                    | estructura_while
                    | estructura_for''' 
-    if len(p) == 5:  # Es una instrucción escribir
+    if len(p) == 5:  # una instrucción escribir
         p[0] = ('escribir', p[3])
-    else:  # Es otra instrucción
+    elif len(p) == 3 and p[1] == 'leer':  
+        p[0] = ('leer', p[2])  #  variable que se lee
+    else:  
         p[0] = p[1]
 
 def p_declaracion_variable(p):
@@ -52,21 +54,13 @@ def p_estructura_for(p):
     p[0] = ('for', p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13])
 
 
-def p_condicion_for(p):
-    '''condicion_for : expresion_relacional'''
-    p[0] = ('condicion', p[1])
 
-def p_incremento_for(p):
-    '''incremento_for : VARIABLE INCREMENTO
-                       | VARIABLE DECREMENTO'''
-    p[0] = ('incremento', p[1], p[2])
-    
 def p_expresion_logica(p):
     '''expresion_logica : expresion_relacional
                         | expresion_logica LOGICO expresion_relacional'''
-    if len(p) == 2:  # Solo expresión relacional
+    if len(p) == 2: 
         p[0] = p[1]
-    else:  # Operador lógico
+    else:  
         p[0] = ('operacion_logica', p[2], p[1], p[3])
 
 def p_operador_comparacion(p):
@@ -90,6 +84,10 @@ def p_expresion_relacional(p):
     elif len(p) == 3:
         p[0] = ('expresion_parentesis', p[2])
 
+def p_expresion_aritmetica(p):
+    '''expresion : expresion OPERADOR expresion'''
+    p[0] = ('operacion_aritmetica', p[2], p[1], p[3])
+
 def p_expresion(p):
     '''expresion : ENTERO
                  | FLOTANTE
@@ -104,44 +102,30 @@ def p_expresion(p):
     else:  # VARIABLE
         p[0] = ('expresion_variable', p[1])
 
+
+errores_sintacticos = [] 
 def p_error(p):
+    global errores_sintacticos
     if p:
-        print(f"Error de sintaxis en '{p.value}' (token {p.type}), línea {p.lineno}")
+        mensaje = f"Error de sintaxis en '{p.value}' (token {p.type}), línea {p.lineno}"
     else:
-        print("Error de sintaxis en el final de la entrada")
+        mensaje = "Error de sintaxis en el final de la entrada"
+    
+    errores_sintacticos.append(mensaje)
 
 # Construcción del parser
-parser = yacc.yacc()
+parser = yacc.yacc(debug=True)
 
 def analizar_sintaxis(codigo):
-    return parser.parse(codigo)
+    global errores_sintacticos
+    errores_sintacticos.clear()  
+    resultado = parser.parse(codigo)
+    return resultado, errores_sintacticos
 
-# Ejemplo de prueba
-codigo_prueba = """
-func init {
-    val x = 10;
-    escribir:"Hola";
-    
-    if( x < 20 ) {
-        escribir:"Numero valido";
-    }
-    
-    val y = 30;
+'''
+def mostrar_tablas():
+    print("Tabla de análisis predictivo:")
+    # Usar trace para ver las transiciones paso a paso del parser
+    parser.parse('func init { val x = 5; leer y; escribir : "Hello, world!"; }')
 
-    if(y == 30) {
-        escribir:"Y es 30";
-    }
-    
-    while(y > 30) {
-        escribir:"Y es 30";
-    }
-
-   for (val i = 0; i >= 1; i++) {
-   escribir:"Y es 30";
-  }
-
-}
-"""
-
-resultado = analizar_sintaxis(codigo_prueba)
-print(resultado) 
+'''

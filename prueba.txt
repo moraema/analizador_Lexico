@@ -1,24 +1,26 @@
 func init {
     if (a > 10) {
     escribir:"Mayor que 10";
-} else {
-    escribir: "Menor o igual a 10";
-}
+} 
 
-for (i = 0; i < 10; i++) {  /* otro comentario */
-    escribir: i;
+for (val i = 0; i < 10; i++) { 
+    escribir: "es un for";
 }
 
 
 val x = 10;
-if (x > 5 && x < 20) {
+if (x > 5) {
     escribir:"Numero valido";
 }
 val prueba = 20.1;
 
-/* este es un comentario */
+
 while (x < 100) {
-    x = x + 10;
-    escribir: x;
+    escribir: "x es mayor que 100";
 }
+
+val x = 4 + 6;
+val y = 4 - 2 + 3 * 8;
+
+leer x;
 }   

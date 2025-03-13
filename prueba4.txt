@@ -5,7 +5,7 @@ func init {
 
 
 val x = 10;
-if (x > 5 && x < 20) {
+if (x > 5) {
     escribir:"Numero valido";
 }
 va prueba = 20.1;

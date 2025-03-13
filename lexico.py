@@ -51,6 +51,8 @@ t_DOS_PUNTOS = r'\:'
 t_T_PARENTESIS_L = r'\('
 t_T_PARENTESIS_R = r'\)'
 t_OPERADOR = r'\+|\-|\*|\/'
+t_LEER = r'leer'
+
 
 def t_FLOTANTE(t):
     r'\d+\.\d+'
