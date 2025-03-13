@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk
 from lexico import analisis
-from analizador_sintactico import analizar_sintaxis  # Importa la función del analizador sintáctico
+from analizador_sintactico import analizar_sintaxis  
 
 def analizar_codigo():
 
@@ -14,7 +14,7 @@ def analizar_codigo():
     try:
         resultado_sintactico, errores_sintacticos = analizar_sintaxis(codigo)
         
-        # Limpiar área de texto de análisis sintáctico antes de insertar nuevos datos
+        
         salida_sintactico.delete("1.0", tk.END)
 
         if errores_sintacticos:
@@ -27,7 +27,7 @@ def analizar_codigo():
         salida_sintactico.delete("1.0", tk.END)
         salida_sintactico.insert(tk.END, f"Error: {str(e)}\n")
     
-    # Mostrar resultados en la interfaz
+    
     salida_tokens.delete("1.0", tk.END)
     salida_tokens.insert(tk.END, "\n".join(tokens_detectados))
     
@@ -45,7 +45,7 @@ def cargar_archivo():
             entrada_texto.delete("1.0", tk.END)
             entrada_texto.insert(tk.END, f.read())
 
-# Crear interfaz gráfica
+
 root = tk.Tk()
 root.title("Analizador Léxico y Sintáctico")
 root.geometry("700x600")
