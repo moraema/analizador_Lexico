@@ -1,0 +1,13 @@
+func init {
+    if (a > 10) {
+    escribir:"Mayor que 10";
+} 
+
+
+val x = 10;
+if (x > 5 && x < 20) {
+    escribir:"Numero valido";
+}
+va prueba = 20.1;
+
+}   

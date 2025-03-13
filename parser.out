@@ -2,58 +2,95 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    ASIGNACION
-    COMPARACION
     ELSE
-    ENTERO
-    FLOTANTE
-    FOR
-    IF
     LEER
-    LOGICO
-    OPERADOR
-    VAL
-    VARIABLE
-    WHILE
 
 Grammar
 
 Rule 0     S' -> programa
 Rule 1     programa -> funcion
 Rule 2     funcion -> FUNC INIT DELIMITADOR_L bloque DELIMITADOR_R
-Rule 3     bloque -> instruccion
-Rule 4     instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+Rule 3     bloque -> instruccion bloque
+Rule 4     bloque -> instruccion
+Rule 5     instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+Rule 6     instruccion -> declaracion_variable
+Rule 7     instruccion -> estructura_if
+Rule 8     instruccion -> estructura_while
+Rule 9     instruccion -> estructura_for
+Rule 10    declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR
+Rule 11    estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+Rule 12    estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+Rule 13    estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+Rule 14    condicion_for -> expresion_relacional
+Rule 15    incremento_for -> VARIABLE INCREMENTO
+Rule 16    incremento_for -> VARIABLE DECREMENTO
+Rule 17    expresion_logica -> expresion_relacional
+Rule 18    expresion_logica -> expresion_logica LOGICO expresion_relacional
+Rule 19    operador_comparacion -> COMPARACION_GREATER
+Rule 20    operador_comparacion -> COMPARACION_LESS
+Rule 21    operador_comparacion -> COMPARACION_LESS_EQ
+Rule 22    operador_comparacion -> COMPARACION_GREATER_EQ
+Rule 23    expresion_relacional -> expresion COMPARACION_LESS expresion
+Rule 24    expresion_relacional -> expresion COMPARACION_GREATER expresion
+Rule 25    expresion_relacional -> expresion COMPARACION_LESS_EQ expresion
+Rule 26    expresion_relacional -> expresion COMPARACION_GREATER_EQ expresion
+Rule 27    expresion_relacional -> expresion COMPARACION_EQ expresion
+Rule 28    expresion_relacional -> expresion COMPARACION_NEQ expresion
+Rule 29    expresion_relacional -> T_PARENTESIS_L expresion_relacional T_PARENTESIS_R
+Rule 30    expresion -> ENTERO
+Rule 31    expresion -> FLOTANTE
+Rule 32    expresion -> COMILLAS
+Rule 33    expresion -> VARIABLE
 
 Terminals, with rules where they appear
 
-ASIGNACION           : 
-COMILLAS             : 4
-COMPARACION          : 
-DELIMITADOR_L        : 2
-DELIMITADOR_R        : 2
-DOS_PUNTOS           : 4
+ASIGNACION           : 10
+COMILLAS             : 5 32
+COMPARACION_EQ       : 27
+COMPARACION_GREATER  : 19 24
+COMPARACION_GREATER_EQ : 22 26
+COMPARACION_LESS     : 20 23
+COMPARACION_LESS_EQ  : 21 25
+COMPARACION_NEQ      : 28
+DECREMENTO           : 16
+DELIMITADOR_L        : 2 11 12 13
+DELIMITADOR_R        : 2 11 12 13
+DOS_PUNTOS           : 5
 ELSE                 : 
-ENTERO               : 
-ESCRIBIR             : 4
-FLOTANTE             : 
-FOR                  : 
+ENTERO               : 30
+ESCRIBIR             : 5
+FLOTANTE             : 31
+FOR                  : 13
 FUNC                 : 2
-IF                   : 
+IF                   : 11
+INCREMENTO           : 15
 INIT                 : 2
 LEER                 : 
-LOGICO               : 
-OPERADOR             : 
-SEPARADOR            : 4
-VAL                  : 
-VARIABLE             : 
-WHILE                : 
+LOGICO               : 18
+OPERADOR             : 13 13
+SEPARADOR            : 5 10 13
+T_PARENTESIS_L       : 13 29
+T_PARENTESIS_R       : 13 29
+VAL                  : 10
+VARIABLE             : 10 13 13 15 16 33
+WHILE                : 12
 error                : 
 
 Nonterminals, with rules where they appear
 
-bloque               : 2
+bloque               : 2 3 11 12 13
+condicion_for        : 
+declaracion_variable : 6 13
+estructura_for       : 9
+estructura_if        : 7
+estructura_while     : 8
+expresion            : 10 13 23 23 24 24 25 25 26 26 27 27 28 28
+expresion_logica     : 11 12 18
+expresion_relacional : 14 17 18 29
 funcion              : 1
-instruccion          : 3
+incremento_for       : 
+instruccion          : 3 4
+operador_comparacion : 13
 programa             : 0
 
 Parsing method: LALR
@@ -99,59 +136,861 @@ state 4
 state 5
 
     (2) funcion -> FUNC INIT DELIMITADOR_L . bloque DELIMITADOR_R
-    (3) bloque -> . instruccion
-    (4) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (3) bloque -> . instruccion bloque
+    (4) bloque -> . instruccion
+    (5) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (6) instruccion -> . declaracion_variable
+    (7) instruccion -> . estructura_if
+    (8) instruccion -> . estructura_while
+    (9) instruccion -> . estructura_for
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+    (11) estructura_if -> . IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (12) estructura_while -> . WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (13) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
 
     ESCRIBIR        shift and go to state 8
+    VAL             shift and go to state 13
+    IF              shift and go to state 14
+    WHILE           shift and go to state 15
+    FOR             shift and go to state 16
 
     bloque                         shift and go to state 6
     instruccion                    shift and go to state 7
+    declaracion_variable           shift and go to state 9
+    estructura_if                  shift and go to state 10
+    estructura_while               shift and go to state 11
+    estructura_for                 shift and go to state 12
 
 state 6
 
     (2) funcion -> FUNC INIT DELIMITADOR_L bloque . DELIMITADOR_R
 
-    DELIMITADOR_R   shift and go to state 9
+    DELIMITADOR_R   shift and go to state 17
 
 
 state 7
 
-    (3) bloque -> instruccion .
+    (3) bloque -> instruccion . bloque
+    (4) bloque -> instruccion .
+    (3) bloque -> . instruccion bloque
+    (4) bloque -> . instruccion
+    (5) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (6) instruccion -> . declaracion_variable
+    (7) instruccion -> . estructura_if
+    (8) instruccion -> . estructura_while
+    (9) instruccion -> . estructura_for
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+    (11) estructura_if -> . IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (12) estructura_while -> . WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (13) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
 
-    DELIMITADOR_R   reduce using rule 3 (bloque -> instruccion .)
+    DELIMITADOR_R   reduce using rule 4 (bloque -> instruccion .)
+    ESCRIBIR        shift and go to state 8
+    VAL             shift and go to state 13
+    IF              shift and go to state 14
+    WHILE           shift and go to state 15
+    FOR             shift and go to state 16
 
+    instruccion                    shift and go to state 7
+    bloque                         shift and go to state 18
+    declaracion_variable           shift and go to state 9
+    estructura_if                  shift and go to state 10
+    estructura_while               shift and go to state 11
+    estructura_for                 shift and go to state 12
 
 state 8
 
-    (4) instruccion -> ESCRIBIR . DOS_PUNTOS COMILLAS SEPARADOR
+    (5) instruccion -> ESCRIBIR . DOS_PUNTOS COMILLAS SEPARADOR
 
-    DOS_PUNTOS      shift and go to state 10
+    DOS_PUNTOS      shift and go to state 19
 
 
 state 9
+
+    (6) instruccion -> declaracion_variable .
+
+    ESCRIBIR        reduce using rule 6 (instruccion -> declaracion_variable .)
+    VAL             reduce using rule 6 (instruccion -> declaracion_variable .)
+    IF              reduce using rule 6 (instruccion -> declaracion_variable .)
+    WHILE           reduce using rule 6 (instruccion -> declaracion_variable .)
+    FOR             reduce using rule 6 (instruccion -> declaracion_variable .)
+    DELIMITADOR_R   reduce using rule 6 (instruccion -> declaracion_variable .)
+
+
+state 10
+
+    (7) instruccion -> estructura_if .
+
+    ESCRIBIR        reduce using rule 7 (instruccion -> estructura_if .)
+    VAL             reduce using rule 7 (instruccion -> estructura_if .)
+    IF              reduce using rule 7 (instruccion -> estructura_if .)
+    WHILE           reduce using rule 7 (instruccion -> estructura_if .)
+    FOR             reduce using rule 7 (instruccion -> estructura_if .)
+    DELIMITADOR_R   reduce using rule 7 (instruccion -> estructura_if .)
+
+
+state 11
+
+    (8) instruccion -> estructura_while .
+
+    ESCRIBIR        reduce using rule 8 (instruccion -> estructura_while .)
+    VAL             reduce using rule 8 (instruccion -> estructura_while .)
+    IF              reduce using rule 8 (instruccion -> estructura_while .)
+    WHILE           reduce using rule 8 (instruccion -> estructura_while .)
+    FOR             reduce using rule 8 (instruccion -> estructura_while .)
+    DELIMITADOR_R   reduce using rule 8 (instruccion -> estructura_while .)
+
+
+state 12
+
+    (9) instruccion -> estructura_for .
+
+    ESCRIBIR        reduce using rule 9 (instruccion -> estructura_for .)
+    VAL             reduce using rule 9 (instruccion -> estructura_for .)
+    IF              reduce using rule 9 (instruccion -> estructura_for .)
+    WHILE           reduce using rule 9 (instruccion -> estructura_for .)
+    FOR             reduce using rule 9 (instruccion -> estructura_for .)
+    DELIMITADOR_R   reduce using rule 9 (instruccion -> estructura_for .)
+
+
+state 13
+
+    (10) declaracion_variable -> VAL . VARIABLE ASIGNACION expresion SEPARADOR
+
+    VARIABLE        shift and go to state 20
+
+
+state 14
+
+    (11) estructura_if -> IF . expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (17) expresion_logica -> . expresion_relacional
+    (18) expresion_logica -> . expresion_logica LOGICO expresion_relacional
+    (23) expresion_relacional -> . expresion COMPARACION_LESS expresion
+    (24) expresion_relacional -> . expresion COMPARACION_GREATER expresion
+    (25) expresion_relacional -> . expresion COMPARACION_LESS_EQ expresion
+    (26) expresion_relacional -> . expresion COMPARACION_GREATER_EQ expresion
+    (27) expresion_relacional -> . expresion COMPARACION_EQ expresion
+    (28) expresion_relacional -> . expresion COMPARACION_NEQ expresion
+    (29) expresion_relacional -> . T_PARENTESIS_L expresion_relacional T_PARENTESIS_R
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    T_PARENTESIS_L  shift and go to state 24
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion_logica               shift and go to state 21
+    expresion_relacional           shift and go to state 22
+    expresion                      shift and go to state 23
+
+state 15
+
+    (12) estructura_while -> WHILE . expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (17) expresion_logica -> . expresion_relacional
+    (18) expresion_logica -> . expresion_logica LOGICO expresion_relacional
+    (23) expresion_relacional -> . expresion COMPARACION_LESS expresion
+    (24) expresion_relacional -> . expresion COMPARACION_GREATER expresion
+    (25) expresion_relacional -> . expresion COMPARACION_LESS_EQ expresion
+    (26) expresion_relacional -> . expresion COMPARACION_GREATER_EQ expresion
+    (27) expresion_relacional -> . expresion COMPARACION_EQ expresion
+    (28) expresion_relacional -> . expresion COMPARACION_NEQ expresion
+    (29) expresion_relacional -> . T_PARENTESIS_L expresion_relacional T_PARENTESIS_R
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    T_PARENTESIS_L  shift and go to state 24
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion_logica               shift and go to state 29
+    expresion_relacional           shift and go to state 22
+    expresion                      shift and go to state 23
+
+state 16
+
+    (13) estructura_for -> FOR . T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    T_PARENTESIS_L  shift and go to state 30
+
+
+state 17
 
     (2) funcion -> FUNC INIT DELIMITADOR_L bloque DELIMITADOR_R .
 
     $end            reduce using rule 2 (funcion -> FUNC INIT DELIMITADOR_L bloque DELIMITADOR_R .)
 
 
-state 10
+state 18
 
-    (4) instruccion -> ESCRIBIR DOS_PUNTOS . COMILLAS SEPARADOR
+    (3) bloque -> instruccion bloque .
 
-    COMILLAS        shift and go to state 11
-
-
-state 11
-
-    (4) instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS . SEPARADOR
-
-    SEPARADOR       shift and go to state 12
+    DELIMITADOR_R   reduce using rule 3 (bloque -> instruccion bloque .)
 
 
-state 12
+state 19
 
-    (4) instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .
+    (5) instruccion -> ESCRIBIR DOS_PUNTOS . COMILLAS SEPARADOR
 
-    DELIMITADOR_R   reduce using rule 4 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    COMILLAS        shift and go to state 31
+
+
+state 20
+
+    (10) declaracion_variable -> VAL VARIABLE . ASIGNACION expresion SEPARADOR
+
+    ASIGNACION      shift and go to state 32
+
+
+state 21
+
+    (11) estructura_if -> IF expresion_logica . DELIMITADOR_L bloque DELIMITADOR_R
+    (18) expresion_logica -> expresion_logica . LOGICO expresion_relacional
+
+    DELIMITADOR_L   shift and go to state 33
+    LOGICO          shift and go to state 34
+
+
+state 22
+
+    (17) expresion_logica -> expresion_relacional .
+
+    DELIMITADOR_L   reduce using rule 17 (expresion_logica -> expresion_relacional .)
+    LOGICO          reduce using rule 17 (expresion_logica -> expresion_relacional .)
+
+
+state 23
+
+    (23) expresion_relacional -> expresion . COMPARACION_LESS expresion
+    (24) expresion_relacional -> expresion . COMPARACION_GREATER expresion
+    (25) expresion_relacional -> expresion . COMPARACION_LESS_EQ expresion
+    (26) expresion_relacional -> expresion . COMPARACION_GREATER_EQ expresion
+    (27) expresion_relacional -> expresion . COMPARACION_EQ expresion
+    (28) expresion_relacional -> expresion . COMPARACION_NEQ expresion
+
+    COMPARACION_LESS shift and go to state 35
+    COMPARACION_GREATER shift and go to state 36
+    COMPARACION_LESS_EQ shift and go to state 37
+    COMPARACION_GREATER_EQ shift and go to state 38
+    COMPARACION_EQ  shift and go to state 39
+    COMPARACION_NEQ shift and go to state 40
+
+
+state 24
+
+    (29) expresion_relacional -> T_PARENTESIS_L . expresion_relacional T_PARENTESIS_R
+    (23) expresion_relacional -> . expresion COMPARACION_LESS expresion
+    (24) expresion_relacional -> . expresion COMPARACION_GREATER expresion
+    (25) expresion_relacional -> . expresion COMPARACION_LESS_EQ expresion
+    (26) expresion_relacional -> . expresion COMPARACION_GREATER_EQ expresion
+    (27) expresion_relacional -> . expresion COMPARACION_EQ expresion
+    (28) expresion_relacional -> . expresion COMPARACION_NEQ expresion
+    (29) expresion_relacional -> . T_PARENTESIS_L expresion_relacional T_PARENTESIS_R
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    T_PARENTESIS_L  shift and go to state 24
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion_relacional           shift and go to state 41
+    expresion                      shift and go to state 23
+
+state 25
+
+    (30) expresion -> ENTERO .
+
+    COMPARACION_LESS reduce using rule 30 (expresion -> ENTERO .)
+    COMPARACION_GREATER reduce using rule 30 (expresion -> ENTERO .)
+    COMPARACION_LESS_EQ reduce using rule 30 (expresion -> ENTERO .)
+    COMPARACION_GREATER_EQ reduce using rule 30 (expresion -> ENTERO .)
+    COMPARACION_EQ  reduce using rule 30 (expresion -> ENTERO .)
+    COMPARACION_NEQ reduce using rule 30 (expresion -> ENTERO .)
+    SEPARADOR       reduce using rule 30 (expresion -> ENTERO .)
+    DELIMITADOR_L   reduce using rule 30 (expresion -> ENTERO .)
+    LOGICO          reduce using rule 30 (expresion -> ENTERO .)
+    T_PARENTESIS_R  reduce using rule 30 (expresion -> ENTERO .)
+
+
+state 26
+
+    (31) expresion -> FLOTANTE .
+
+    COMPARACION_LESS reduce using rule 31 (expresion -> FLOTANTE .)
+    COMPARACION_GREATER reduce using rule 31 (expresion -> FLOTANTE .)
+    COMPARACION_LESS_EQ reduce using rule 31 (expresion -> FLOTANTE .)
+    COMPARACION_GREATER_EQ reduce using rule 31 (expresion -> FLOTANTE .)
+    COMPARACION_EQ  reduce using rule 31 (expresion -> FLOTANTE .)
+    COMPARACION_NEQ reduce using rule 31 (expresion -> FLOTANTE .)
+    SEPARADOR       reduce using rule 31 (expresion -> FLOTANTE .)
+    DELIMITADOR_L   reduce using rule 31 (expresion -> FLOTANTE .)
+    LOGICO          reduce using rule 31 (expresion -> FLOTANTE .)
+    T_PARENTESIS_R  reduce using rule 31 (expresion -> FLOTANTE .)
+
+
+state 27
+
+    (32) expresion -> COMILLAS .
+
+    COMPARACION_LESS reduce using rule 32 (expresion -> COMILLAS .)
+    COMPARACION_GREATER reduce using rule 32 (expresion -> COMILLAS .)
+    COMPARACION_LESS_EQ reduce using rule 32 (expresion -> COMILLAS .)
+    COMPARACION_GREATER_EQ reduce using rule 32 (expresion -> COMILLAS .)
+    COMPARACION_EQ  reduce using rule 32 (expresion -> COMILLAS .)
+    COMPARACION_NEQ reduce using rule 32 (expresion -> COMILLAS .)
+    SEPARADOR       reduce using rule 32 (expresion -> COMILLAS .)
+    DELIMITADOR_L   reduce using rule 32 (expresion -> COMILLAS .)
+    LOGICO          reduce using rule 32 (expresion -> COMILLAS .)
+    T_PARENTESIS_R  reduce using rule 32 (expresion -> COMILLAS .)
+
+
+state 28
+
+    (33) expresion -> VARIABLE .
+
+    COMPARACION_LESS reduce using rule 33 (expresion -> VARIABLE .)
+    COMPARACION_GREATER reduce using rule 33 (expresion -> VARIABLE .)
+    COMPARACION_LESS_EQ reduce using rule 33 (expresion -> VARIABLE .)
+    COMPARACION_GREATER_EQ reduce using rule 33 (expresion -> VARIABLE .)
+    COMPARACION_EQ  reduce using rule 33 (expresion -> VARIABLE .)
+    COMPARACION_NEQ reduce using rule 33 (expresion -> VARIABLE .)
+    SEPARADOR       reduce using rule 33 (expresion -> VARIABLE .)
+    DELIMITADOR_L   reduce using rule 33 (expresion -> VARIABLE .)
+    LOGICO          reduce using rule 33 (expresion -> VARIABLE .)
+    T_PARENTESIS_R  reduce using rule 33 (expresion -> VARIABLE .)
+
+
+state 29
+
+    (12) estructura_while -> WHILE expresion_logica . DELIMITADOR_L bloque DELIMITADOR_R
+    (18) expresion_logica -> expresion_logica . LOGICO expresion_relacional
+
+    DELIMITADOR_L   shift and go to state 42
+    LOGICO          shift and go to state 34
+
+
+state 30
+
+    (13) estructura_for -> FOR T_PARENTESIS_L . declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+
+    VAL             shift and go to state 13
+
+    declaracion_variable           shift and go to state 43
+
+state 31
+
+    (5) instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS . SEPARADOR
+
+    SEPARADOR       shift and go to state 44
+
+
+state 32
+
+    (10) declaracion_variable -> VAL VARIABLE ASIGNACION . expresion SEPARADOR
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 45
+
+state 33
+
+    (11) estructura_if -> IF expresion_logica DELIMITADOR_L . bloque DELIMITADOR_R
+    (3) bloque -> . instruccion bloque
+    (4) bloque -> . instruccion
+    (5) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (6) instruccion -> . declaracion_variable
+    (7) instruccion -> . estructura_if
+    (8) instruccion -> . estructura_while
+    (9) instruccion -> . estructura_for
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+    (11) estructura_if -> . IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (12) estructura_while -> . WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (13) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    ESCRIBIR        shift and go to state 8
+    VAL             shift and go to state 13
+    IF              shift and go to state 14
+    WHILE           shift and go to state 15
+    FOR             shift and go to state 16
+
+    bloque                         shift and go to state 46
+    instruccion                    shift and go to state 7
+    declaracion_variable           shift and go to state 9
+    estructura_if                  shift and go to state 10
+    estructura_while               shift and go to state 11
+    estructura_for                 shift and go to state 12
+
+state 34
+
+    (18) expresion_logica -> expresion_logica LOGICO . expresion_relacional
+    (23) expresion_relacional -> . expresion COMPARACION_LESS expresion
+    (24) expresion_relacional -> . expresion COMPARACION_GREATER expresion
+    (25) expresion_relacional -> . expresion COMPARACION_LESS_EQ expresion
+    (26) expresion_relacional -> . expresion COMPARACION_GREATER_EQ expresion
+    (27) expresion_relacional -> . expresion COMPARACION_EQ expresion
+    (28) expresion_relacional -> . expresion COMPARACION_NEQ expresion
+    (29) expresion_relacional -> . T_PARENTESIS_L expresion_relacional T_PARENTESIS_R
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    T_PARENTESIS_L  shift and go to state 24
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion_relacional           shift and go to state 47
+    expresion                      shift and go to state 23
+
+state 35
+
+    (23) expresion_relacional -> expresion COMPARACION_LESS . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 48
+
+state 36
+
+    (24) expresion_relacional -> expresion COMPARACION_GREATER . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 49
+
+state 37
+
+    (25) expresion_relacional -> expresion COMPARACION_LESS_EQ . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 50
+
+state 38
+
+    (26) expresion_relacional -> expresion COMPARACION_GREATER_EQ . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 51
+
+state 39
+
+    (27) expresion_relacional -> expresion COMPARACION_EQ . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 52
+
+state 40
+
+    (28) expresion_relacional -> expresion COMPARACION_NEQ . expresion
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 53
+
+state 41
+
+    (29) expresion_relacional -> T_PARENTESIS_L expresion_relacional . T_PARENTESIS_R
+
+    T_PARENTESIS_R  shift and go to state 54
+
+
+state 42
+
+    (12) estructura_while -> WHILE expresion_logica DELIMITADOR_L . bloque DELIMITADOR_R
+    (3) bloque -> . instruccion bloque
+    (4) bloque -> . instruccion
+    (5) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (6) instruccion -> . declaracion_variable
+    (7) instruccion -> . estructura_if
+    (8) instruccion -> . estructura_while
+    (9) instruccion -> . estructura_for
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+    (11) estructura_if -> . IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (12) estructura_while -> . WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (13) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    ESCRIBIR        shift and go to state 8
+    VAL             shift and go to state 13
+    IF              shift and go to state 14
+    WHILE           shift and go to state 15
+    FOR             shift and go to state 16
+
+    bloque                         shift and go to state 55
+    instruccion                    shift and go to state 7
+    declaracion_variable           shift and go to state 9
+    estructura_if                  shift and go to state 10
+    estructura_while               shift and go to state 11
+    estructura_for                 shift and go to state 12
+
+state 43
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable . VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    VARIABLE        shift and go to state 56
+
+
+state 44
+
+    (5) instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .
+
+    ESCRIBIR        reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    VAL             reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    IF              reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    WHILE           reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    FOR             reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+    DELIMITADOR_R   reduce using rule 5 (instruccion -> ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR .)
+
+
+state 45
+
+    (10) declaracion_variable -> VAL VARIABLE ASIGNACION expresion . SEPARADOR
+
+    SEPARADOR       shift and go to state 57
+
+
+state 46
+
+    (11) estructura_if -> IF expresion_logica DELIMITADOR_L bloque . DELIMITADOR_R
+
+    DELIMITADOR_R   shift and go to state 58
+
+
+state 47
+
+    (18) expresion_logica -> expresion_logica LOGICO expresion_relacional .
+
+    DELIMITADOR_L   reduce using rule 18 (expresion_logica -> expresion_logica LOGICO expresion_relacional .)
+    LOGICO          reduce using rule 18 (expresion_logica -> expresion_logica LOGICO expresion_relacional .)
+
+
+state 48
+
+    (23) expresion_relacional -> expresion COMPARACION_LESS expresion .
+
+    DELIMITADOR_L   reduce using rule 23 (expresion_relacional -> expresion COMPARACION_LESS expresion .)
+    LOGICO          reduce using rule 23 (expresion_relacional -> expresion COMPARACION_LESS expresion .)
+    T_PARENTESIS_R  reduce using rule 23 (expresion_relacional -> expresion COMPARACION_LESS expresion .)
+
+
+state 49
+
+    (24) expresion_relacional -> expresion COMPARACION_GREATER expresion .
+
+    DELIMITADOR_L   reduce using rule 24 (expresion_relacional -> expresion COMPARACION_GREATER expresion .)
+    LOGICO          reduce using rule 24 (expresion_relacional -> expresion COMPARACION_GREATER expresion .)
+    T_PARENTESIS_R  reduce using rule 24 (expresion_relacional -> expresion COMPARACION_GREATER expresion .)
+
+
+state 50
+
+    (25) expresion_relacional -> expresion COMPARACION_LESS_EQ expresion .
+
+    DELIMITADOR_L   reduce using rule 25 (expresion_relacional -> expresion COMPARACION_LESS_EQ expresion .)
+    LOGICO          reduce using rule 25 (expresion_relacional -> expresion COMPARACION_LESS_EQ expresion .)
+    T_PARENTESIS_R  reduce using rule 25 (expresion_relacional -> expresion COMPARACION_LESS_EQ expresion .)
+
+
+state 51
+
+    (26) expresion_relacional -> expresion COMPARACION_GREATER_EQ expresion .
+
+    DELIMITADOR_L   reduce using rule 26 (expresion_relacional -> expresion COMPARACION_GREATER_EQ expresion .)
+    LOGICO          reduce using rule 26 (expresion_relacional -> expresion COMPARACION_GREATER_EQ expresion .)
+    T_PARENTESIS_R  reduce using rule 26 (expresion_relacional -> expresion COMPARACION_GREATER_EQ expresion .)
+
+
+state 52
+
+    (27) expresion_relacional -> expresion COMPARACION_EQ expresion .
+
+    DELIMITADOR_L   reduce using rule 27 (expresion_relacional -> expresion COMPARACION_EQ expresion .)
+    LOGICO          reduce using rule 27 (expresion_relacional -> expresion COMPARACION_EQ expresion .)
+    T_PARENTESIS_R  reduce using rule 27 (expresion_relacional -> expresion COMPARACION_EQ expresion .)
+
+
+state 53
+
+    (28) expresion_relacional -> expresion COMPARACION_NEQ expresion .
+
+    DELIMITADOR_L   reduce using rule 28 (expresion_relacional -> expresion COMPARACION_NEQ expresion .)
+    LOGICO          reduce using rule 28 (expresion_relacional -> expresion COMPARACION_NEQ expresion .)
+    T_PARENTESIS_R  reduce using rule 28 (expresion_relacional -> expresion COMPARACION_NEQ expresion .)
+
+
+state 54
+
+    (29) expresion_relacional -> T_PARENTESIS_L expresion_relacional T_PARENTESIS_R .
+
+    DELIMITADOR_L   reduce using rule 29 (expresion_relacional -> T_PARENTESIS_L expresion_relacional T_PARENTESIS_R .)
+    LOGICO          reduce using rule 29 (expresion_relacional -> T_PARENTESIS_L expresion_relacional T_PARENTESIS_R .)
+    T_PARENTESIS_R  reduce using rule 29 (expresion_relacional -> T_PARENTESIS_L expresion_relacional T_PARENTESIS_R .)
+
+
+state 55
+
+    (12) estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque . DELIMITADOR_R
+
+    DELIMITADOR_R   shift and go to state 59
+
+
+state 56
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE . operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+    (19) operador_comparacion -> . COMPARACION_GREATER
+    (20) operador_comparacion -> . COMPARACION_LESS
+    (21) operador_comparacion -> . COMPARACION_LESS_EQ
+    (22) operador_comparacion -> . COMPARACION_GREATER_EQ
+
+    COMPARACION_GREATER shift and go to state 61
+    COMPARACION_LESS shift and go to state 62
+    COMPARACION_LESS_EQ shift and go to state 63
+    COMPARACION_GREATER_EQ shift and go to state 64
+
+    operador_comparacion           shift and go to state 60
+
+state 57
+
+    (10) declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .
+
+    ESCRIBIR        reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    VAL             reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    IF              reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    WHILE           reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    FOR             reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    DELIMITADOR_R   reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+    VARIABLE        reduce using rule 10 (declaracion_variable -> VAL VARIABLE ASIGNACION expresion SEPARADOR .)
+
+
+state 58
+
+    (11) estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .
+
+    ESCRIBIR        reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    VAL             reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    IF              reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    WHILE           reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    FOR             reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    DELIMITADOR_R   reduce using rule 11 (estructura_if -> IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+
+
+state 59
+
+    (12) estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .
+
+    ESCRIBIR        reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    VAL             reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    IF              reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    WHILE           reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    FOR             reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+    DELIMITADOR_R   reduce using rule 12 (estructura_while -> WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R .)
+
+
+state 60
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion . expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+    (30) expresion -> . ENTERO
+    (31) expresion -> . FLOTANTE
+    (32) expresion -> . COMILLAS
+    (33) expresion -> . VARIABLE
+
+    ENTERO          shift and go to state 25
+    FLOTANTE        shift and go to state 26
+    COMILLAS        shift and go to state 27
+    VARIABLE        shift and go to state 28
+
+    expresion                      shift and go to state 65
+
+state 61
+
+    (19) operador_comparacion -> COMPARACION_GREATER .
+
+    ENTERO          reduce using rule 19 (operador_comparacion -> COMPARACION_GREATER .)
+    FLOTANTE        reduce using rule 19 (operador_comparacion -> COMPARACION_GREATER .)
+    COMILLAS        reduce using rule 19 (operador_comparacion -> COMPARACION_GREATER .)
+    VARIABLE        reduce using rule 19 (operador_comparacion -> COMPARACION_GREATER .)
+
+
+state 62
+
+    (20) operador_comparacion -> COMPARACION_LESS .
+
+    ENTERO          reduce using rule 20 (operador_comparacion -> COMPARACION_LESS .)
+    FLOTANTE        reduce using rule 20 (operador_comparacion -> COMPARACION_LESS .)
+    COMILLAS        reduce using rule 20 (operador_comparacion -> COMPARACION_LESS .)
+    VARIABLE        reduce using rule 20 (operador_comparacion -> COMPARACION_LESS .)
+
+
+state 63
+
+    (21) operador_comparacion -> COMPARACION_LESS_EQ .
+
+    ENTERO          reduce using rule 21 (operador_comparacion -> COMPARACION_LESS_EQ .)
+    FLOTANTE        reduce using rule 21 (operador_comparacion -> COMPARACION_LESS_EQ .)
+    COMILLAS        reduce using rule 21 (operador_comparacion -> COMPARACION_LESS_EQ .)
+    VARIABLE        reduce using rule 21 (operador_comparacion -> COMPARACION_LESS_EQ .)
+
+
+state 64
+
+    (22) operador_comparacion -> COMPARACION_GREATER_EQ .
+
+    ENTERO          reduce using rule 22 (operador_comparacion -> COMPARACION_GREATER_EQ .)
+    FLOTANTE        reduce using rule 22 (operador_comparacion -> COMPARACION_GREATER_EQ .)
+    COMILLAS        reduce using rule 22 (operador_comparacion -> COMPARACION_GREATER_EQ .)
+    VARIABLE        reduce using rule 22 (operador_comparacion -> COMPARACION_GREATER_EQ .)
+
+
+state 65
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion . SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    SEPARADOR       shift and go to state 66
+
+
+state 66
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR . VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    VARIABLE        shift and go to state 67
+
+
+state 67
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE . OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    OPERADOR        shift and go to state 68
+
+
+state 68
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR . OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    OPERADOR        shift and go to state 69
+
+
+state 69
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR . T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    T_PARENTESIS_R  shift and go to state 70
+
+
+state 70
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R . DELIMITADOR_L bloque DELIMITADOR_R
+
+    DELIMITADOR_L   shift and go to state 71
+
+
+state 71
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L . bloque DELIMITADOR_R
+    (3) bloque -> . instruccion bloque
+    (4) bloque -> . instruccion
+    (5) instruccion -> . ESCRIBIR DOS_PUNTOS COMILLAS SEPARADOR
+    (6) instruccion -> . declaracion_variable
+    (7) instruccion -> . estructura_if
+    (8) instruccion -> . estructura_while
+    (9) instruccion -> . estructura_for
+    (10) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
+    (11) estructura_if -> . IF expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (12) estructura_while -> . WHILE expresion_logica DELIMITADOR_L bloque DELIMITADOR_R
+    (13) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R
+
+    ESCRIBIR        shift and go to state 8
+    VAL             shift and go to state 13
+    IF              shift and go to state 14
+    WHILE           shift and go to state 15
+    FOR             shift and go to state 16
+
+    declaracion_variable           shift and go to state 9
+    bloque                         shift and go to state 72
+    instruccion                    shift and go to state 7
+    estructura_if                  shift and go to state 10
+    estructura_while               shift and go to state 11
+    estructura_for                 shift and go to state 12
+
+state 72
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque . DELIMITADOR_R
+
+    DELIMITADOR_R   shift and go to state 73
+
+
+state 73
+
+    (13) estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .
+
+    ESCRIBIR        reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
+    VAL             reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
+    IF              reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
+    WHILE           reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
+    FOR             reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
+    DELIMITADOR_R   reduce using rule 13 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable VARIABLE operador_comparacion expresion SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L bloque DELIMITADOR_R .)
 

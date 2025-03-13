@@ -1,0 +1,10 @@
+func init {
+
+if ( < 100) {
+    escribir: "hola";
+}
+
+for (i = 0; i < 10; i+) {  
+    escribir: i;
+} 
+} 

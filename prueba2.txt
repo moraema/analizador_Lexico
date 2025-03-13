@@ -1,0 +1,11 @@
+func init {
+
+whie (x < 100) {
+    x = x + 10;
+    escribir: x;
+}
+
+if ( < 100) {
+    escribir: "hola";
+}
+}   
