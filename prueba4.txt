@@ -1,13 +1,12 @@
 func init {
-    if (a > 10) {
-    escribir:"Mayor que 10";
-} 
+    val x = 10
+    val y = "hola";
 
+    if x < y {
+        escribir("Esto no debería funcionar");
+    }
 
-val x = 10;
-if (x > 5) {
-    escribir:"Numero valido";
+    for (i = 0; i < 5; i++) {
+        escribir(i);
+    }
 }
-va prueba = 20.1;
-
-}   

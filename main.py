@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk
 from lexico import analisis
 from analizador_sintactico import analizar_sintaxis
-from analizador import analizar_programa  
+from analizador_semantico import analizar_programa  
 
 def formatear_ast(ast, nivel=0):
     """Convierte el AST a un formato de texto legible"""

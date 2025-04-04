@@ -1,10 +1,12 @@
 func init {
+    val x = 10;
+    val y = 20;
+    
+    if (x < y) {
+        escribir("X es menor que Y");
+    }
 
-if ( < 100) {
-    escribir: "hola";
+    for (val i = 0; i < 5; i++) {
+        escribir(i);
+    }
 }
-
-for (val i = 0; i < 10; i+) {  
-    escribir: ;
-} 
-} 

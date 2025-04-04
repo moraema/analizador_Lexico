@@ -1,8 +1,0 @@
-func init {
-
-val x = 10;
-if (x > 5 && x < 20) {
-    escribir:"Numero valido";
-}
-val prueba = 20.1;
-}   

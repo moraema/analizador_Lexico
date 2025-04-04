@@ -16,7 +16,7 @@ grammar = r"""
                 | print_statement
                 | input_statement
 
-    declaracion_variable: "var" IDENTIFICADOR "=" expresion ";"
+    declaracion_variable: "val" IDENTIFICADOR "=" expresion ";"
     asignacion: IDENTIFICADOR "=" expresion ";"
     
     estructura_if: "if" "(" expresion_logica ")" "{" instruccion* "}"
@@ -24,8 +24,8 @@ grammar = r"""
     estructura_while: "while" "(" expresion_logica ")" "{" instruccion* "}"
     estructura_for: "for" "(" declaracion_variable expresion_logica ";" IDENTIFICADOR operador_incremento ")" "{" instruccion* "}"
     
-    print_statement: "print" "(" expresion ")" ";"
-    input_statement: "input" "(" IDENTIFICADOR ")" ";"
+    print_statement: "escribir" "(" expresion ")" ";"
+    input_statement: "leer" "(" IDENTIFICADOR ")" ";"
     
     ?operador_incremento: "++"
                         | "--"
@@ -127,7 +127,7 @@ class ASTBuilder(Transformer):
         }
     
     def print_statement(self, expresion):
-        return {"tipo": "print", "expresion": expresion}
+        return {"tipo": "escribir", "expresion": expresion}
     
     def input_statement(self, identificador):
         nombre_var = str(identificador)
@@ -135,7 +135,7 @@ class ASTBuilder(Transformer):
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en input")
         
-        return {"tipo": "input", "variable": nombre_var}
+        return {"tipo": "leer", "variable": nombre_var}
     
     def operacion(self, izquierda, operador, derecha):
         tipo_izq = self.inferir_tipo(izquierda)

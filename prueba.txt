@@ -1,19 +1,17 @@
  func init {
-        // Programa de ejemplo válido
-        var x = 10;
-        var y = 20;
-        var resultado = x + y;
+        val x = 10;
+        val y = 20;
+        val resultado = x + y;
         
-        print("La suma es:");
-        print(resultado);
+        escribir("La suma es:");
+        escribir(resultado);
         
     
         
-        // Condicional
         if (resultado > 20) {
-            print("El resultado es mayor que 20");
+            escribir("El resultado es mayor que 20");
         } else {
-            print("El resultado es 20 o menor");
+            escribir("El resultado es 20 o menor");
         }
     }
 
