@@ -3,7 +3,7 @@ func init {
     val y = "hola";
 
     if x < y {
-        escribir("Esto no debería funcionar");
+        escribir("Esto no deberia funcionar");
     }
 
     for (i = 0; i < 5; i++) {

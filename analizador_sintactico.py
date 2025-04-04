@@ -53,7 +53,7 @@ def p_estructura_while(p):
     p[0] = ('while', p[3], p[6])
 
 def p_estructura_for(p):
-    '''estructura_for : FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R'''
+    '''estructura_for : FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R'''
     p[0] = ('for', p[3], p[4], p[6], p[9])
 
 def p_print_statement(p):

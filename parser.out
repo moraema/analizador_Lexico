@@ -4,6 +4,7 @@ Unused terminals:
 
     DECREMENTO
     DOS_PUNTOS
+    INCREMENTO
 
 Grammar
 
@@ -25,7 +26,7 @@ Rule 14    asignacion -> VARIABLE ASIGNACION expresion SEPARADOR
 Rule 15    estructura_if -> IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 Rule 16    estructura_else -> estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
 Rule 17    estructura_while -> WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-Rule 18    estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+Rule 18    estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 Rule 19    print_statement -> ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
 Rule 20    input_statement -> LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 Rule 21    expresion_logica -> expresion_relacional
@@ -66,11 +67,11 @@ FLOTANTE             : 33
 FOR                  : 18
 FUNC                 : 1
 IF                   : 15
-INCREMENTO           : 18
+INCREMENTO           : 
 INIT                 : 1
 LEER                 : 20
 LOGICO               : 22
-OPERADOR             : 31
+OPERADOR             : 18 18 31
 SEPARADOR            : 12 13 14 18 19 20
 T_PARENTESIS_L       : 15 17 18 19 20 29 36
 T_PARENTESIS_R       : 15 17 18 19 20 29 36
@@ -147,7 +148,7 @@ state 4
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -198,7 +199,7 @@ state 6
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -390,7 +391,7 @@ state 19
 
 state 20
 
-    (18) estructura_for -> FOR . T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR . T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 
     T_PARENTESIS_L  shift and go to state 30
 
@@ -521,7 +522,7 @@ state 29
 
 state 30
 
-    (18) estructura_for -> FOR T_PARENTESIS_L . declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L . declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (13) declaracion_variable -> . VAL VARIABLE ASIGNACION expresion SEPARADOR
 
     VAL             shift and go to state 16
@@ -574,7 +575,7 @@ state 33
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -807,7 +808,7 @@ state 46
 
 state 47
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable . expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable . expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (21) expresion_logica -> . expresion_relacional
     (22) expresion_logica -> . expresion_logica LOGICO expresion_relacional
     (23) expresion_relacional -> . expresion COMPARACION_EQ expresion
@@ -1103,7 +1104,7 @@ state 65
 
 state 66
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica . SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica . SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (22) expresion_logica -> expresion_logica . LOGICO expresion_relacional
 
     SEPARADOR       shift and go to state 83
@@ -1218,7 +1219,7 @@ state 74
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -1336,7 +1337,7 @@ state 82
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -1362,7 +1363,7 @@ state 82
 
 state 83
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR . VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR . VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 
     VARIABLE        shift and go to state 88
 
@@ -1413,9 +1414,9 @@ state 87
 
 state 88
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE . INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE . OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 
-    INCREMENTO      shift and go to state 91
+    OPERADOR        shift and go to state 91
 
 
 state 89
@@ -1451,21 +1452,28 @@ state 90
 
 state 91
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO . T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR . OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 
-    T_PARENTESIS_R  shift and go to state 92
+    OPERADOR        shift and go to state 92
 
 
 state 92
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R . DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR . T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
 
-    DELIMITADOR_L   shift and go to state 93
+    T_PARENTESIS_R  shift and go to state 93
 
 
 state 93
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L . instrucciones DELIMITADOR_R
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R . DELIMITADOR_L instrucciones DELIMITADOR_R
+
+    DELIMITADOR_L   shift and go to state 94
+
+
+state 94
+
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L . instrucciones DELIMITADOR_R
     (2) instrucciones -> . instruccion instrucciones
     (3) instrucciones -> . instruccion
     (4) instruccion -> . declaracion_variable
@@ -1482,7 +1490,7 @@ state 93
     (15) estructura_if -> . IF T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (16) estructura_else -> . estructura_if ELSE DELIMITADOR_L instrucciones DELIMITADOR_R
     (17) estructura_while -> . WHILE T_PARENTESIS_L expresion_logica T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
-    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
+    (18) estructura_for -> . FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R
     (19) print_statement -> . ESCRIBIR T_PARENTESIS_L expresion T_PARENTESIS_R SEPARADOR
     (20) input_statement -> . LEER T_PARENTESIS_L VARIABLE T_PARENTESIS_R SEPARADOR
 
@@ -1496,7 +1504,7 @@ state 93
     LEER            shift and go to state 22
 
     declaracion_variable           shift and go to state 7
-    instrucciones                  shift and go to state 94
+    instrucciones                  shift and go to state 95
     instruccion                    shift and go to state 6
     asignacion                     shift and go to state 8
     estructura_if                  shift and go to state 9
@@ -1506,24 +1514,24 @@ state 93
     print_statement                shift and go to state 13
     input_statement                shift and go to state 14
 
-state 94
-
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones . DELIMITADOR_R
-
-    DELIMITADOR_R   shift and go to state 95
-
-
 state 95
 
-    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones . DELIMITADOR_R
 
-    SEPARADOR       reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    VAL             reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    VARIABLE        reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    IF              reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    WHILE           reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    FOR             reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    ESCRIBIR        reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    LEER            reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
-    DELIMITADOR_R   reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE INCREMENTO T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    DELIMITADOR_R   shift and go to state 96
+
+
+state 96
+
+    (18) estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .
+
+    SEPARADOR       reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    VAL             reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    VARIABLE        reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    IF              reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    WHILE           reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    FOR             reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    ESCRIBIR        reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    LEER            reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
+    DELIMITADOR_R   reduce using rule 18 (estructura_for -> FOR T_PARENTESIS_L declaracion_variable expresion_logica SEPARADOR VARIABLE OPERADOR OPERADOR T_PARENTESIS_R DELIMITADOR_L instrucciones DELIMITADOR_R .)
 

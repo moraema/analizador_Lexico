@@ -274,13 +274,15 @@ def imprimir_ast(ast, nivel=0):
 
 # Clase Intérprete para ejecutar el AST
 class Interprete:
-    def __init__(self):
+    def __init__(self, debug=True):
         # Memoria para almacenar valores de variables
         self.memoria = {}
         # Para simular la entrada del usuario
         self.entradas = []
         # Para capturar las salidas del programa
         self.salidas = []
+        # Modo debug para mostrar operaciones
+        self.debug = debug
     
     def establecer_entradas(self, entradas):
         """Establece una lista de valores de entrada para simular input()"""
@@ -304,10 +306,15 @@ class Interprete:
             self.salidas = []  # Reiniciar salidas
             
             ast = resultado_analisis["ast"]
+            print(">>> Iniciando ejecución del programa <<<")
             # Ejecutar solo las instrucciones dentro de func init
             if ast["tipo"] == "programa":
                 for instruccion in ast.get("instrucciones", []):
                     self.ejecutar_nodo(instruccion)
+            
+            print(">>> Ejecución completada <<<")
+            print(">>> Estado final de la memoria:", self.memoria)
+            print(">>> Salidas generadas:", self.salidas)
             
             return {
                 "exito": True,
@@ -333,56 +340,110 @@ class Interprete:
                 nombre = nodo.get("nombre")
                 valor = self.evaluar_expresion(nodo.get("valor"))
                 self.memoria[nombre] = valor
+                if self.debug:
+                    print(f"DECLARACIÓN: {nombre} = {valor}")
             
             elif tipo_nodo == "asignacion":
                 nombre = nodo.get("nombre")
                 valor = self.evaluar_expresion(nodo.get("valor"))
                 self.memoria[nombre] = valor
+                if self.debug:
+                    print(f"ASIGNACIÓN: {nombre} = {valor}")
             
             elif tipo_nodo == "if":
                 condicion = self.evaluar_expresion(nodo.get("condicion"))
+                if self.debug:
+                    print(f"EVALUACIÓN IF: condición = {condicion}")
                 if condicion:
+                    if self.debug:
+                        print("EJECUTANDO BLOQUE IF")
                     self.ejecutar_nodo(nodo.get("cuerpo"))
             
             elif tipo_nodo == "if_else":
                 condicion = self.evaluar_expresion(nodo.get("condicion"))
+                if self.debug:
+                    print(f"EVALUACIÓN IF-ELSE: condición = {condicion}")
                 if condicion:
+                    if self.debug:
+                        print("EJECUTANDO BLOQUE IF")
                     self.ejecutar_nodo(nodo.get("cuerpo_if"))
                 else:
+                    if self.debug:
+                        print("EJECUTANDO BLOQUE ELSE")
                     self.ejecutar_nodo(nodo.get("cuerpo_else"))
             
             elif tipo_nodo == "while":
-                while self.evaluar_expresion(nodo.get("condicion")):
+                iteracion = 0
+                while True:
+                    condicion = self.evaluar_expresion(nodo.get("condicion"))
+                    if self.debug:
+                        print(f"EVALUACIÓN WHILE (iteración {iteracion}): condición = {condicion}")
+                    if not condicion:
+                        break
+                    if self.debug:
+                        print(f"EJECUTANDO CUERPO WHILE (iteración {iteracion})")
                     self.ejecutar_nodo(nodo.get("cuerpo"))
+                    iteracion += 1
             
             elif tipo_nodo == "for":
                 # Ejecutar inicialización
+                if self.debug:
+                    print("INICIALIZACIÓN FOR")
                 self.ejecutar_nodo(nodo.get("inicializacion"))
                 
                 # Ejecutar el bucle
-                while self.evaluar_expresion(nodo.get("condicion")):
+                iteracion = 0
+                while True:
+                    condicion = self.evaluar_expresion(nodo.get("condicion"))
+                    if self.debug:
+                        print(f"EVALUACIÓN FOR (iteración {iteracion}): condición = {condicion}")
+                    if not condicion:
+                        break
+                    
+                    if self.debug:
+                        print(f"EJECUTANDO CUERPO FOR (iteración {iteracion})")
                     self.ejecutar_nodo(nodo.get("cuerpo"))
                     
                     # Actualizar la variable de incremento
                     variable = nodo.get("variable")
                     operador = nodo.get("operador")
+                    valor_anterior = self.memoria.get(variable, 0)
                     
                     if operador == "++":
-                        self.memoria[variable] = self.memoria.get(variable, 0) + 1
+                        self.memoria[variable] = valor_anterior + 1
+                        if self.debug:
+                            print(f"INCREMENTO: {variable} = {valor_anterior} + 1 = {self.memoria[variable]}")
                     elif operador == "--":
-                        self.memoria[variable] = self.memoria.get(variable, 0) - 1
+                        self.memoria[variable] = valor_anterior - 1
+                        if self.debug:
+                            print(f"DECREMENTO: {variable} = {valor_anterior} - 1 = {self.memoria[variable]}")
+                    
+                    iteracion += 1
             
-            elif tipo_nodo == "print":
+            elif tipo_nodo == "escribir":
                 valor = self.evaluar_expresion(nodo.get("expresion"))
                 self.salidas.append(str(valor))
+                if self.debug:
+                    print(f"ESCRIBIR: {valor}")
+                else:
+                    print(f">>> {valor}")
             
-            elif tipo_nodo == "input":
+            elif tipo_nodo == "leer":
                 variable = nodo.get("variable")
                 if self.entradas:
-                    self.memoria[variable] = self.entradas.pop(0)
+                    valor = self.entradas.pop(0)
+                    self.memoria[variable] = valor
+                    if self.debug:
+                        print(f"LEER: {variable} = {valor}")
                 else:
                     # Si no hay entradas simuladas, usamos un valor por defecto
                     self.memoria[variable] = 0
+                    if self.debug:
+                        print(f"LEER (sin entrada disponible): {variable} = 0")
+        
+        elif isinstance(nodo, list):
+            for elemento in nodo:
+                self.ejecutar_nodo(elemento)
     
     def evaluar_expresion(self, expresion):
         """Evalúa una expresión y devuelve su valor"""
@@ -402,39 +463,51 @@ class Interprete:
         
         elif tipo_expr == "variable":
             nombre = expresion.get("nombre")
-            return self.memoria.get(nombre, 0)  # 0 por defecto si no existe
+            valor = self.memoria.get(nombre, 0)  # 0 por defecto si no existe
+            if self.debug:
+                print(f"LECTURA VARIABLE: {nombre} = {valor}")
+            return valor
         
         elif tipo_expr == "operacion":
             izquierda = self.evaluar_expresion(expresion.get("izquierda"))
             derecha = self.evaluar_expresion(expresion.get("derecha"))
             operador = expresion.get("operador")
             
+            resultado = None
             if operador == "+":
-                return izquierda + derecha
+                resultado = izquierda + derecha
             elif operador == "-":
-                return izquierda - derecha
+                resultado = izquierda - derecha
             elif operador == "*":
-                return izquierda * derecha
+                resultado = izquierda * derecha
             elif operador == "/":
-                return izquierda / derecha if derecha != 0 else 0  # Evitar división por cero
+                resultado = izquierda / derecha if derecha != 0 else 0  # Evitar división por cero
+            
+            if self.debug:
+                print(f"OPERACIÓN: {izquierda} {operador} {derecha} = {resultado}")
+            return resultado
         
         elif tipo_expr == "comparacion":
             izquierda = self.evaluar_expresion(expresion.get("izquierda"))
             derecha = self.evaluar_expresion(expresion.get("derecha"))
             operador = expresion.get("operador")
             
+            resultado = None
             if operador == "==":
-                return izquierda == derecha
+                resultado = izquierda == derecha
             elif operador == "!=":
-                return izquierda != derecha
+                resultado = izquierda != derecha
             elif operador == "<":
-                return izquierda < derecha
+                resultado = izquierda < derecha
             elif operador == ">":
-                return izquierda > derecha
+                resultado = izquierda > derecha
             elif operador == "<=":
-                return izquierda <= derecha
+                resultado = izquierda <= derecha
             elif operador == ">=":
-                return izquierda >= derecha
+                resultado = izquierda >= derecha
+            
+            if self.debug:
+                print(f"COMPARACIÓN: {izquierda} {operador} {derecha} = {resultado}")
+            return resultado
         
-        return 0  # Valor por defecto
-
+        return 0  
