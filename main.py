@@ -91,15 +91,6 @@ def cargar_archivo():
             entrada_texto.delete("1.0", tk.END)
             entrada_texto.insert(tk.END, f.read())
 
-def guardar_archivo():
-    """ Permite guardar el código actual en un archivo de texto. """
-    archivo = filedialog.asksaveasfilename(filetypes=[("Archivos de texto", "*.txt")])
-    if archivo:
-        if not archivo.endswith(".txt"):
-            archivo += ".txt"
-        with open(archivo, "w") as f:
-            f.write(entrada_texto.get("1.0", tk.END))
-
 def limpiar_entrada():
     """ Limpia el área de entrada de código. """
     entrada_texto.delete("1.0", tk.END)
@@ -126,8 +117,6 @@ frame_botones.pack(pady=10)
 btn_cargar = tk.Button(frame_botones, text="Cargar Archivo", command=cargar_archivo)
 btn_cargar.pack(side=tk.LEFT, padx=5)
 
-btn_guardar = tk.Button(frame_botones, text="Guardar Archivo", command=guardar_archivo)
-btn_guardar.pack(side=tk.LEFT, padx=5)
 
 btn_limpiar = tk.Button(frame_botones, text="Limpiar Entrada", command=limpiar_entrada)
 btn_limpiar.pack(side=tk.LEFT, padx=5)
