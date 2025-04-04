@@ -68,9 +68,7 @@ parser = Lark(grammar, parser='lalr', debug=True)
 class ASTBuilder(Transformer):
     def __init__(self):
         super().__init__()
-        # Tabla de símbolos para almacenar variables y sus tipos
         self.tabla_simbolos = {}
-        # Lista para almacenar errores semánticos
         self.errores_semanticos = []
     
     def programa(self, *instrucciones):
@@ -90,11 +88,10 @@ class ASTBuilder(Transformer):
     
     def asignacion(self, identificador, expresion):
         nombre_var = str(identificador)
-        # Verificar si la variable existe
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         else:
-            # Verificar compatibilidad de tipos
+            
             tipo_var = self.tabla_simbolos[nombre_var]["tipo"]
             tipo_expr = self.inferir_tipo(expresion)
             if tipo_var != tipo_expr and tipo_var != "any" and tipo_expr != "any":
@@ -112,7 +109,7 @@ class ASTBuilder(Transformer):
         return {"tipo": "while", "condicion": condicion, "cuerpo": cuerpo}
     
     def estructura_for(self, inicializacion, condicion, variable, operador, cuerpo):
-        # Verificar que la variable del incremento existe
+       
         nombre_var = str(variable)
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en bucle for")
@@ -131,7 +128,7 @@ class ASTBuilder(Transformer):
     
     def input_statement(self, identificador):
         nombre_var = str(identificador)
-        # Verificar si la variable existe
+        
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en input")
         
@@ -141,7 +138,7 @@ class ASTBuilder(Transformer):
         tipo_izq = self.inferir_tipo(izquierda)
         tipo_der = self.inferir_tipo(derecha)
         
-        # Verificar compatibilidad de tipos para operaciones aritméticas
+    
         if tipo_izq != tipo_der and tipo_izq != "any" and tipo_der != "any":
             self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en operación aritmética")
         
@@ -151,14 +148,14 @@ class ASTBuilder(Transformer):
         tipo_izq = self.inferir_tipo(izquierda)
         tipo_der = self.inferir_tipo(derecha)
         
-        # Verificar compatibilidad de tipos para comparaciones
+        
         if tipo_izq != tipo_der and tipo_izq != "any" and tipo_der != "any":
             self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en comparación")
         
         return {"tipo": "comparacion", "operador": str(operador), "izquierda": izquierda, "derecha": derecha}
     
     def numero(self, valor):
-        # Determinar si es entero o flotante
+        
         if "." in str(valor):
             return {"tipo": "flotante", "valor": float(valor)}
         else:
@@ -166,14 +163,14 @@ class ASTBuilder(Transformer):
     
     def variable(self, nombre):
         nombre_var = str(nombre)
-        # Verificar si la variable existe
+       
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         
         return {"tipo": "variable", "nombre": nombre_var}
     
     def cadena(self, valor):
-        # Eliminar las comillas del string
+        
         valor_str = str(valor)[1:-1]
         return {"tipo": "cadena", "valor": valor_str}
     
@@ -181,7 +178,7 @@ class ASTBuilder(Transformer):
         return expresion
     
     def inferir_tipo(self, expresion):
-        # Inferir el tipo de una expresión para chequeo de tipos
+       
         if isinstance(expresion, dict):
             if expresion["tipo"] == "entero":
                 return "entero"
@@ -193,34 +190,34 @@ class ASTBuilder(Transformer):
                 nombre_var = expresion["nombre"]
                 if nombre_var in self.tabla_simbolos:
                     return self.tabla_simbolos[nombre_var]["tipo"]
-                return "any"  # Si no existe, asumimos tipo any para evitar cascada de errores
+                return "any"
             elif expresion["tipo"] == "operacion":
-                # Para operaciones, inferimos el tipo basado en los operandos
+                
                 tipo_izq = self.inferir_tipo(expresion["izquierda"])
                 tipo_der = self.inferir_tipo(expresion["derecha"])
                 
-                # Si ambos son del mismo tipo, el resultado es de ese tipo
+                
                 if tipo_izq == tipo_der:
                     return tipo_izq
-                # Si alguno es flotante, el resultado es flotante
+               
                 elif "flotante" in [tipo_izq, tipo_der]:
                     return "flotante"
-                # Si alguno es any, asumimos any
+              
                 elif "any" in [tipo_izq, tipo_der]:
                     return "any"
-                # En otros casos (como con cadenas), podría haber problemas
+               
                 else:
                     return "any"
         
-        return "any"  # Tipo por defecto
+        return "any" 
 
-# Función para analizar un programa
+
 def analizar_programa(codigo):
     try:
         # Parseo inicial
         arbol = parser.parse(codigo)
         
-        # Construcción del AST y análisis semántico
+
         transformador = ASTBuilder()
         ast = transformador.transform(arbol)
         
@@ -231,7 +228,7 @@ def analizar_programa(codigo):
             "errores": transformador.errores_semanticos
         }
     except UnexpectedToken as e:
-        # Mensaje especial para cuando falta func init
+        
         if e.token == "func":
             return {
                 "exito": False,
@@ -272,25 +269,22 @@ def imprimir_ast(ast, nivel=0):
         indent = "  " * nivel
         print(f"{indent}{ast}")
 
-# Clase Intérprete para ejecutar el AST
+
 class Interprete:
     def __init__(self, debug=True):
-        # Memoria para almacenar valores de variables
+        
         self.memoria = {}
-        # Para simular la entrada del usuario
+     
         self.entradas = []
-        # Para capturar las salidas del programa
+     
         self.salidas = []
-        # Modo debug para mostrar operaciones
+       
         self.debug = debug
     
     def establecer_entradas(self, entradas):
-        """Establece una lista de valores de entrada para simular input()"""
         self.entradas = entradas
     
     def ejecutar(self, codigo):
-        """Ejecuta un programa y devuelve el resultado de la ejecución"""
-        # Analizar el programa primero
         resultado_analisis = analizar_programa(codigo)
         
         if not resultado_analisis["exito"]:
@@ -300,14 +294,13 @@ class Interprete:
                 "errores": resultado_analisis.get("errores", [])
             }
         
-        # Si el análisis fue exitoso, ejecutamos el programa
+   
         try:
-            self.memoria = {}  # Reiniciar memoria
-            self.salidas = []  # Reiniciar salidas
+            self.memoria = {}  
+            self.salidas = []  
             
             ast = resultado_analisis["ast"]
             print(">>> Iniciando ejecución del programa <<<")
-            # Ejecutar solo las instrucciones dentro de func init
             if ast["tipo"] == "programa":
                 for instruccion in ast.get("instrucciones", []):
                     self.ejecutar_nodo(instruccion)
@@ -328,7 +321,6 @@ class Interprete:
             }
     
     def ejecutar_nodo(self, nodo):
-        """Ejecuta un nodo del AST"""
         if isinstance(nodo, dict):
             tipo_nodo = nodo.get("tipo")
             
@@ -386,12 +378,10 @@ class Interprete:
                     iteracion += 1
             
             elif tipo_nodo == "for":
-                # Ejecutar inicialización
                 if self.debug:
                     print("INICIALIZACIÓN FOR")
                 self.ejecutar_nodo(nodo.get("inicializacion"))
                 
-                # Ejecutar el bucle
                 iteracion = 0
                 while True:
                     condicion = self.evaluar_expresion(nodo.get("condicion"))
@@ -404,7 +394,6 @@ class Interprete:
                         print(f"EJECUTANDO CUERPO FOR (iteración {iteracion})")
                     self.ejecutar_nodo(nodo.get("cuerpo"))
                     
-                    # Actualizar la variable de incremento
                     variable = nodo.get("variable")
                     operador = nodo.get("operador")
                     valor_anterior = self.memoria.get(variable, 0)
@@ -436,7 +425,6 @@ class Interprete:
                     if self.debug:
                         print(f"LEER: {variable} = {valor}")
                 else:
-                    # Si no hay entradas simuladas, usamos un valor por defecto
                     self.memoria[variable] = 0
                     if self.debug:
                         print(f"LEER (sin entrada disponible): {variable} = 0")
@@ -463,7 +451,7 @@ class Interprete:
         
         elif tipo_expr == "variable":
             nombre = expresion.get("nombre")
-            valor = self.memoria.get(nombre, 0)  # 0 por defecto si no existe
+            valor = self.memoria.get(nombre, 0) 
             if self.debug:
                 print(f"LECTURA VARIABLE: {nombre} = {valor}")
             return valor
@@ -481,7 +469,7 @@ class Interprete:
             elif operador == "*":
                 resultado = izquierda * derecha
             elif operador == "/":
-                resultado = izquierda / derecha if derecha != 0 else 0  # Evitar división por cero
+                resultado = izquierda / derecha if derecha != 0 else 0  
             
             if self.debug:
                 print(f"OPERACIÓN: {izquierda} {operador} {derecha} = {resultado}")
