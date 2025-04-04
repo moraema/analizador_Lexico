@@ -1,11 +1,10 @@
-func init {
+var x = 10;
+    print(x);
+    """
+    
 
-whie (x < 100) {
-    x = x + 10;
-    escribir: x;
-}
-
-if ( < 100) {
-    escribir: "hola";
-}
-}   
+    codigo_error_semantico = """
+    func init {
+        x = 10;  // Variable no declarada
+        print(x);
+    }
