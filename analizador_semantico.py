@@ -1,11 +1,13 @@
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedInput, UnexpectedToken, UnexpectedCharacters
 
-# Definición de la gramática en Lark
+# Definición de la gramática en Lark - Modificamos la sintaxis de definición de funciones para incluir paréntesis
 grammar = r"""
     ?start: programa
 
-    programa: "func" "init" "{" instruccion+ "}"
+    programa: func+
+
+    func: "func" IDENTIFICADOR "()" "{" instruccion+ "}"
 
     ?instruccion: declaracion_variable
                 | asignacion
@@ -15,6 +17,7 @@ grammar = r"""
                 | estructura_for
                 | print_statement
                 | input_statement
+                | llamada_funcion
 
     declaracion_variable: "val" IDENTIFICADOR "=" expresion ";"
     asignacion: IDENTIFICADOR "=" expresion ";"
@@ -26,6 +29,7 @@ grammar = r"""
     
     print_statement: "escribir" "(" expresion ")" ";"
     input_statement: "leer" "(" IDENTIFICADOR ")" ";"
+    llamada_funcion: IDENTIFICADOR "(" ")" ";"
     
     ?operador_incremento: "++"
                         | "--"
@@ -63,16 +67,45 @@ grammar = r"""
 # Crear el parser de Lark
 parser = Lark(grammar, parser='lalr', debug=True)
 
-# Transformador para construir el AST
+
 @v_args(inline=True)
 class ASTBuilder(Transformer):
     def __init__(self):
         super().__init__()
         self.tabla_simbolos = {}
+        self.tabla_funciones = {}
+        self.llamadas_funciones = []  # Lista para almacenar las llamadas a funciones
         self.errores_semanticos = []
     
-    def programa(self, *instrucciones):
-        return {"tipo": "programa", "instrucciones": list(instrucciones)}
+    def programa(self, *funciones):
+        # Registrar todas las funciones primero
+        for func in funciones:
+            nombre_func = func.get("nombre")
+            self.tabla_funciones[nombre_func] = func
+        
+        # Verificar que haya una función init
+        if "init" not in self.tabla_funciones:
+            self.errores_semanticos.append("Error semántico: Debe existir una función 'init'")
+        
+        # Verificar las llamadas a funciones pendientes
+        for llamada in self.llamadas_funciones:
+            if llamada not in self.tabla_funciones:
+                self.errores_semanticos.append(f"Error semántico: Función '{llamada}' no declarada")
+        
+        return {"tipo": "programa", "funciones": list(funciones)}
+    
+    def func(self, nombre, *instrucciones):
+        nombre_func = str(nombre)
+        
+        # Devuelve el nodo de la función
+        return {"tipo": "funcion", "nombre": nombre_func, "instrucciones": list(instrucciones)}
+    
+    def llamada_funcion(self, nombre):
+        nombre_func = str(nombre)
+        # Registrar la llamada para verificarla al final
+        self.llamadas_funciones.append(nombre_func)
+        
+        return {"tipo": "llamada_funcion", "nombre": nombre_func}
     
     def declaracion_variable(self, identificador, expresion):
         nombre_var = str(identificador)
@@ -91,10 +124,10 @@ class ASTBuilder(Transformer):
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         else:
-            
             tipo_var = self.tabla_simbolos[nombre_var]["tipo"]
             tipo_expr = self.inferir_tipo(expresion)
-            if tipo_var != tipo_expr and tipo_var != "any" and tipo_expr != "any":
+            # Permitir asignaciones entre enteros y flotantes
+            if not self.tipos_compatibles(tipo_var, tipo_expr):
                 self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en asignación a '{nombre_var}'")
         
         return {"tipo": "asignacion", "nombre": nombre_var, "valor": expresion}
@@ -109,7 +142,6 @@ class ASTBuilder(Transformer):
         return {"tipo": "while", "condicion": condicion, "cuerpo": cuerpo}
     
     def estructura_for(self, inicializacion, condicion, variable, operador, cuerpo):
-       
         nombre_var = str(variable)
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en bucle for")
@@ -138,8 +170,7 @@ class ASTBuilder(Transformer):
         tipo_izq = self.inferir_tipo(izquierda)
         tipo_der = self.inferir_tipo(derecha)
         
-    
-        if tipo_izq != tipo_der and tipo_izq != "any" and tipo_der != "any":
+        if not self.tipos_compatibles(tipo_izq, tipo_der):
             self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en operación aritmética")
         
         return {"tipo": "operacion", "operador": str(operador), "izquierda": izquierda, "derecha": derecha}
@@ -148,14 +179,13 @@ class ASTBuilder(Transformer):
         tipo_izq = self.inferir_tipo(izquierda)
         tipo_der = self.inferir_tipo(derecha)
         
-        
-        if tipo_izq != tipo_der and tipo_izq != "any" and tipo_der != "any":
+        # Verificar compatibilidad de tipos en comparaciones
+        if not self.tipos_compatibles(tipo_izq, tipo_der):
             self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en comparación")
         
         return {"tipo": "comparacion", "operador": str(operador), "izquierda": izquierda, "derecha": derecha}
     
     def numero(self, valor):
-        
         if "." in str(valor):
             return {"tipo": "flotante", "valor": float(valor)}
         else:
@@ -163,22 +193,29 @@ class ASTBuilder(Transformer):
     
     def variable(self, nombre):
         nombre_var = str(nombre)
-       
         if nombre_var not in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         
         return {"tipo": "variable", "nombre": nombre_var}
     
     def cadena(self, valor):
-        
         valor_str = str(valor)[1:-1]
         return {"tipo": "cadena", "valor": valor_str}
     
     def parentesis(self, expresion):
         return expresion
     
+    def tipos_compatibles(self, tipo1, tipo2):
+        # Consideramos enteros y flotantes como compatibles entre sí
+        if tipo1 == tipo2:
+            return True
+        if (tipo1 == "entero" and tipo2 == "flotante") or (tipo1 == "flotante" and tipo2 == "entero"):
+            return True
+        if tipo1 == "any" or tipo2 == "any":
+            return True
+        return False
+    
     def inferir_tipo(self, expresion):
-       
         if isinstance(expresion, dict):
             if expresion["tipo"] == "entero":
                 return "entero"
@@ -192,20 +229,19 @@ class ASTBuilder(Transformer):
                     return self.tabla_simbolos[nombre_var]["tipo"]
                 return "any"
             elif expresion["tipo"] == "operacion":
-                
                 tipo_izq = self.inferir_tipo(expresion["izquierda"])
                 tipo_der = self.inferir_tipo(expresion["derecha"])
                 
-                
+                # Si ambos son del mismo tipo, devolver ese tipo
                 if tipo_izq == tipo_der:
                     return tipo_izq
-               
+                # Si uno es flotante, el resultado es flotante
                 elif "flotante" in [tipo_izq, tipo_der]:
                     return "flotante"
-              
+                # Si alguno es any, devolver any
                 elif "any" in [tipo_izq, tipo_der]:
                     return "any"
-               
+                # Otros casos (que no deberían ocurrir si la verificación de tipos es correcta)
                 else:
                     return "any"
         
@@ -217,7 +253,6 @@ def analizar_programa(codigo):
         # Parseo inicial
         arbol = parser.parse(codigo)
         
-
         transformador = ASTBuilder()
         ast = transformador.transform(arbol)
         
@@ -225,16 +260,10 @@ def analizar_programa(codigo):
             "exito": len(transformador.errores_semanticos) == 0,
             "ast": ast,
             "tabla_simbolos": transformador.tabla_simbolos,
+            "tabla_funciones": transformador.tabla_funciones,
             "errores": transformador.errores_semanticos
         }
     except UnexpectedToken as e:
-        
-        if e.token == "func":
-            return {
-                "exito": False,
-                "error_tipo": "sintáctico",
-                "mensaje": "El programa debe comenzar con 'func init {}'"
-            }
         return {
             "exito": False,
             "error_tipo": "sintáctico",
@@ -272,14 +301,11 @@ def imprimir_ast(ast, nivel=0):
 
 class Interprete:
     def __init__(self, debug=True):
-        
         self.memoria = {}
-     
         self.entradas = []
-     
         self.salidas = []
-       
         self.debug = debug
+        self.tabla_funciones = {}
     
     def establecer_entradas(self, entradas):
         self.entradas = entradas
@@ -294,16 +320,33 @@ class Interprete:
                 "errores": resultado_analisis.get("errores", [])
             }
         
-   
         try:
             self.memoria = {}  
             self.salidas = []  
             
             ast = resultado_analisis["ast"]
             print(">>> Iniciando ejecución del programa <<<")
+            
+            # Primero, registrar todas las funciones en la tabla de funciones
             if ast["tipo"] == "programa":
-                for instruccion in ast.get("instrucciones", []):
-                    self.ejecutar_nodo(instruccion)
+                funciones = ast.get("funciones", [])
+                
+                # Registramos todas las funciones primero
+                for funcion in funciones:
+                    nombre_func = funcion.get("nombre")
+                    self.tabla_funciones[nombre_func] = funcion
+                    if self.debug:
+                        print(f"Registrando función: {nombre_func}")
+                
+                # Luego buscamos y ejecutamos init
+                if "init" in self.tabla_funciones:
+                    self.ejecutar_funcion("init")
+                else:
+                    print("Error: No se encontró la función 'init'")
+                    return {
+                        "exito": False,
+                        "error": "No se encontró la función 'init'"
+                    }
             
             print(">>> Ejecución completada <<<")
             print(">>> Estado final de la memoria:", self.memoria)
@@ -320,13 +363,37 @@ class Interprete:
                 "error": f"Error en ejecución: {str(e)}"
             }
     
+    def ejecutar_funcion(self, nombre_funcion):
+        if self.debug:
+            print(f"EJECUTANDO FUNCIÓN: {nombre_funcion}")
+        
+        if nombre_funcion not in self.tabla_funciones:
+            print(f"Error: Función '{nombre_funcion}' no encontrada")
+            return
+        
+        funcion = self.tabla_funciones[nombre_funcion]
+        instrucciones = funcion.get("instrucciones", [])
+        
+        for instruccion in instrucciones:
+            self.ejecutar_nodo(instruccion)
+    
     def ejecutar_nodo(self, nodo):
         if isinstance(nodo, dict):
             tipo_nodo = nodo.get("tipo")
             
             if tipo_nodo == "programa":
-                for instruccion in nodo.get("instrucciones", []):
-                    self.ejecutar_nodo(instruccion)
+                for funcion in nodo.get("funciones", []):
+                    if funcion.get("nombre") == "init":
+                        self.ejecutar_nodo(funcion)
+            
+            elif tipo_nodo == "funcion":
+                if nodo.get("nombre") == "init":
+                    for instruccion in nodo.get("instrucciones", []):
+                        self.ejecutar_nodo(instruccion)
+            
+            elif tipo_nodo == "llamada_funcion":
+                nombre_func = nodo.get("nombre")
+                self.ejecutar_funcion(nombre_func)
             
             elif tipo_nodo == "declaracion_variable":
                 nombre = nodo.get("nombre")
@@ -433,55 +500,6 @@ class Interprete:
             for elemento in nodo:
                 self.ejecutar_nodo(elemento)
     
-        def evaluar_expresion(self, expresion):
-           """Evalúa una expresión y devuelve su valor"""
-           if not isinstance(expresion, dict):
-               return expresion
-           
-           tipo_expr = expresion.get("tipo")
-           
-           if tipo_expr == "entero":
-               return int(expresion.get("valor"))
-           elif tipo_expr == "flotante":
-               return float(expresion.get("valor"))
-           elif tipo_expr == "cadena":
-               return str(expresion.get("valor"))
-           elif tipo_expr == "variable":
-               nombre = expresion.get("nombre")
-               return self.memoria.get(nombre, 0)
-           elif tipo_expr == "operacion":
-               izq = self.evaluar_expresion(expresion.get("izquierda"))
-               der = self.evaluar_expresion(expresion.get("derecha"))
-               operador = expresion.get("operador")
-               
-               if operador == "+":
-                   return izq + der
-               elif operador == "-":
-                   return izq - der
-               elif operador == "*":
-                   return izq * der
-               elif operador == "/":
-                   return izq / der if der != 0 else 0
-           elif tipo_expr == "comparacion":
-               izq = self.evaluar_expresion(expresion.get("izquierda"))
-               der = self.evaluar_expresion(expresion.get("derecha"))
-               operador = expresion.get("operador")
-               
-               if operador == "==":
-                   return izq == der
-               elif operador == "!=":
-                   return izq != der
-               elif operador == "<":
-                   return izq < der
-               elif operador == ">":
-                   return izq > der
-               elif operador == "<=":
-                   return izq <= der
-               elif operador == ">=":
-                   return izq >= der
-           
-           return 0  # Valor por defecto
-   
     def evaluar_expresion(self, expresion):
         """Evalúa una expresión y devuelve su valor"""
         if not isinstance(expresion, dict):
@@ -529,4 +547,4 @@ class Interprete:
             elif operador == ">=":
                 return izq >= der
         
-        return 0  # Valor por defecto
+        return 0
