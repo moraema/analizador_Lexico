@@ -1,7 +1,7 @@
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedInput, UnexpectedToken, UnexpectedCharacters
 
-# Definición de la gramática en Lark - Modificamos la sintaxis de definición de funciones para incluir paréntesis
+# Definición de la gramática en Lark - Modificamos la definición de declaración de variables
 grammar = r"""
     ?start: programa
 
@@ -19,7 +19,7 @@ grammar = r"""
                 | input_statement
                 | llamada_funcion
 
-    declaracion_variable: "val" IDENTIFICADOR "=" expresion ";"
+    declaracion_variable: "val" IDENTIFICADOR ("=" expresion)? ";"
     asignacion: IDENTIFICADOR "=" expresion ";"
     
     estructura_if: "if" "(" expresion_logica ")" "{" instruccion* "}"
@@ -107,17 +107,22 @@ class ASTBuilder(Transformer):
         
         return {"tipo": "llamada_funcion", "nombre": nombre_func}
     
-    def declaracion_variable(self, identificador, expresion):
+    def declaracion_variable(self, identificador, *args):
         nombre_var = str(identificador)
         # Verificar si la variable ya está declarada
         if nombre_var in self.tabla_simbolos:
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada")
         else:
-            # Determinar el tipo de la expresión
-            tipo_expr = self.inferir_tipo(expresion)
-            self.tabla_simbolos[nombre_var] = {"tipo": tipo_expr}
-        
-        return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
+            # Si hay un argumento, es la expresión de inicialización
+            if args:
+                expresion = args[0]
+                tipo_expr = self.inferir_tipo(expresion)
+                self.tabla_simbolos[nombre_var] = {"tipo": tipo_expr}
+                return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
+            else:
+                # Si no hay argumentos, es una declaración sin inicialización
+                self.tabla_simbolos[nombre_var] = {"tipo": "any"}
+                return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
     
     def asignacion(self, identificador, expresion):
         nombre_var = str(identificador)
@@ -397,7 +402,7 @@ class Interprete:
             
             elif tipo_nodo == "declaracion_variable":
                 nombre = nodo.get("nombre")
-                valor = self.evaluar_expresion(nodo.get("valor"))
+                valor = self.evaluar_expresion(nodo.get("valor")) if nodo.get("valor") is not None else 0
                 self.memoria[nombre] = valor
                 if self.debug:
                     print(f"DECLARACIÓN: {nombre} = {valor}")

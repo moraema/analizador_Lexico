@@ -1,4 +1,4 @@
- func init {
+ func init() {
         val x = 10;
         val y = 20;
         val resultado = x + y;

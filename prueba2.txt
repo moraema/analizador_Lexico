@@ -1,4 +1,4 @@
-    func init {
+    func init() {
         x = 10; 
         escribir(x);
     }

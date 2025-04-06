@@ -135,9 +135,7 @@ def analizar_codigo():
             ast_formateado = formatear_ast(resultado_semantico["ast"])
             salida_semantico.insert(tk.END, ast_formateado)
 
-           
-            draw_ast(resultado_semantico["ast"])
-            salida_semantico.insert(tk.END, "\n[Imagen del árbol generada: ast.png]\n")
+        
 
     except Exception as e:
         salida_semantico.insert(tk.END, f"Error en análisis semántico: {str(e)}\n")

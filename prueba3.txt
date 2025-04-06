@@ -1,12 +1,33 @@
-func init {
+func init() {
     val x = 10;
-    val y = 20;
+    val y = 56;
+    val z = 5;
+    val resultado = y + x;
+    escribir(resultado);
     
     if (x < y) {
         escribir("X es menor que Y");
     }
+    
+    if (x >= 3 && x == 6 && z != 14) {
+     escribir("Entre 3 y 10");
+    }
+
 
     for (val i = 0; i < 5; i++) {
         escribir(i);
     }
+
+    while (x < 10 && y > 0) {
+    escribir("Dentro del ciclo");
+}
+
+    gato();
+}
+
+func gato() {
+    val result;
+    escribir(result);
+    val prueba;
+    leer(prueba);
 }
