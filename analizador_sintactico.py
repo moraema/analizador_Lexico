@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from lexico import tokens
 
+
 precedence = (
     ('left', 'LOGICO'),
     ('left', 'COMPARACION_EQ', 'COMPARACION_NEQ', 'COMPARACION_LESS', 'COMPARACION_GREATER', 'COMPARACION_LESS_EQ', 'COMPARACION_GREATER_EQ'),

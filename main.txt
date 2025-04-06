@@ -2,10 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk
 from lexico import analisis
 from analizador_sintactico import analizar_sintaxis
-from analizador_semantico import analizar_programa
-import matplotlib.pyplot as plt
-import networkx as nx
-import uuid
+from analizador_semantico import analizar_programa  
 
 def formatear_ast(ast, nivel=0):
     resultado = ""
@@ -24,84 +21,45 @@ def formatear_ast(ast, nivel=0):
         resultado += f"{indent}{ast}\n"
     return resultado
 
+def traducir_operador(op):
+    """Traduce operadores del código intermedio a símbolos"""
+    traducciones = {
+        "SUMA": "+",
+        "RESTA": "-",
+        "MULT": "*",
+        "DIV": "/",
+        "MENOR": "<",
+        "MAYOR": ">",
+        "MENOR_IGUAL": "<=",
+        "MAYOR_IGUAL": ">=",
+        "IGUAL": "==",
+        "DISTINTO": "!="
+    }
+    return traducciones.get(op, op)
 
-def ast_to_graph(ast, graph=None, parent=None):
-    if graph is None:
-        graph = nx.DiGraph()
-
-    node_id = str(uuid.uuid4())
-    label = ast.get("tipo", "nodo") if isinstance(ast, dict) else str(ast)
-    graph.add_node(node_id, label=label)
-
-    if parent:
-        graph.add_edge(parent, node_id)
-
-    if isinstance(ast, dict):
-        for key, value in ast.items():
-            if key != "tipo":
-                ast_to_graph(value, graph, node_id)
-    elif isinstance(ast, list):
-        for item in ast:
-            ast_to_graph(item, graph, node_id)
-
-    return graph
-
-def draw_ast(ast):
-    graph = ast_to_graph(ast)
-    pos = hierarchy_pos(graph, vert_gap=0.5) 
-
-
-    labels = nx.get_node_attributes(graph, 'label')
-
-    plt.figure(figsize=(18, 12))
-    nx.draw(graph, pos, with_labels=True, labels=labels, node_size=3000, node_color="#a6cee3", font_size=9, font_family="monospace", font_weight="bold", arrows=False)
-    plt.title("Árbol de Sintaxis Abstracta (AST)", fontsize=14)
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-    plt.savefig("ast.png")
-    plt.close()
-
-# === Hierarchical Position Helper ===
-def hierarchy_pos(G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, xcenter=0.5):
-    if not nx.is_tree(G):
-        raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
-
-    if root is None:
-        root = list(G.nodes)[0]
-
-    def _hierarchy_pos(G, root, left, right, vert_loc, xcenter, pos=None, parent=None):
-        if pos is None:
-            pos = {}
-        pos[root] = (xcenter, vert_loc)
-        neighbors = list(G.successors(root))
-        if neighbors:
-            dx = (right - left) / len(neighbors)
-            next_x = left + dx / 2
-            for neighbor in neighbors:
-                pos = _hierarchy_pos(G, neighbor, next_x - dx / 2, next_x + dx / 2, vert_loc - vert_gap, next_x, pos, root)
-                next_x += dx
-        return pos
-
-    return _hierarchy_pos(G, root, 0, width, vert_loc, xcenter)
-
-# === Análisis principal ===
 def analizar_codigo():
     codigo = entrada_texto.get("1.0", tk.END).strip()
-
+    
+    # Limpiar todas las salidas
     salida_tokens.delete("1.0", tk.END)
     salida_palabras.delete("1.0", tk.END)
     salida_errores.delete("1.0", tk.END)
     salida_sintactico.delete("1.0", tk.END)
     salida_semantico.delete("1.0", tk.END)
-
+    salida_intermedio.delete("1.0", tk.END)
+    
+    # Análisis léxico
     tokens_detectados, palabras_reservadas_detectadas, errores_detectados = analisis(codigo)
-
+    
+    # Mostrar resultados léxicos
     salida_tokens.insert(tk.END, "\n".join(tokens_detectados))
     salida_palabras.insert(tk.END, "\n".join(palabras_reservadas_detectadas))
     salida_errores.insert(tk.END, "\n".join(errores_detectados))
-
+    
+    # Análisis sintáctico
     try:
         resultado_sintactico, errores_sintacticos = analizar_sintaxis(codigo)
-
+        
         if errores_sintacticos:
             for error in errores_sintacticos:
                 salida_sintactico.insert(tk.END, f"Error: {error}\n")
@@ -110,10 +68,11 @@ def analizar_codigo():
                 salida_sintactico.insert(tk.END, f"Regla aplicada: {regla}\n")
     except Exception as e:
         salida_sintactico.insert(tk.END, f"Error: {str(e)}\n")
-
+    
+    # Análisis semántico
     try:
         resultado_semantico = analizar_programa(codigo)
-
+        
         if not resultado_semantico["exito"]:
             salida_semantico.insert(tk.END, "=== ERRORES SEMÁNTICOS ===\n")
             if "errores" in resultado_semantico and resultado_semantico["errores"]:
@@ -125,26 +84,54 @@ def analizar_codigo():
                 salida_semantico.insert(tk.END, f"Error {error_tipo}: {mensaje_error}\n")
         else:
             salida_semantico.insert(tk.END, "=== ANÁLISIS SEMÁNTICO CORRECTO ===\n")
-
+            
             salida_semantico.insert(tk.END, "\n=== TABLA DE SÍMBOLOS ===\n")
             for variable, info in resultado_semantico["tabla_simbolos"].items():
                 tipo_var = info.get("tipo", "desconocido")
                 salida_semantico.insert(tk.END, f"• Variable: {variable}, Tipo: {tipo_var}\n")
-
+            
             salida_semantico.insert(tk.END, "\n=== ÁRBOL DE SINTAXIS ===\n")
             ast_formateado = formatear_ast(resultado_semantico["ast"])
             salida_semantico.insert(tk.END, ast_formateado)
-
-           
-            draw_ast(resultado_semantico["ast"])
-            salida_semantico.insert(tk.END, "\n[Imagen del árbol generada: ast.png]\n")
-
+            
+            # Mostrar código intermedio si existe
+            if "codigo_intermedio" in resultado_semantico:
+                salida_intermedio.insert(tk.END, "=== CÓDIGO INTERMEDIO ===\n")
+                for instruccion in resultado_semantico["codigo_intermedio"]:
+                    op = instruccion["op"]
+                    arg1 = instruccion["arg1"] if instruccion["arg1"] is not None else ""
+                    arg2 = instruccion["arg2"] if instruccion["arg2"] is not None else ""
+                    resultado = instruccion["resultado"] if instruccion["resultado"] is not None else ""
+                    
+                    if op == "ETIQUETA":
+                        salida_intermedio.insert(tk.END, f"{arg1}:\n")
+                    elif op == "GOTO":
+                        salida_intermedio.insert(tk.END, f"    GOTO {arg1}\n")
+                    elif op == "IF":
+                        salida_intermedio.insert(tk.END, f"    IF {arg1} GOTO {resultado}\n")
+                    elif op == "IFNOT":
+                        salida_intermedio.insert(tk.END, f"    IFNOT {arg1} GOTO {resultado}\n")
+                    elif op in ["SUMA", "RESTA", "MULT", "DIV"]:
+                        salida_intermedio.insert(tk.END, f"    {resultado} = {arg1} {traducir_operador(op)} {arg2}\n")
+                    elif op in ["MENOR", "MAYOR", "MENOR_IGUAL", "MAYOR_IGUAL", "IGUAL", "DISTINTO"]:
+                        salida_intermedio.insert(tk.END, f"    {resultado} = {arg1} {traducir_operador(op)} {arg2}\n")
+                    elif op == "ASIGNAR":
+                        salida_intermedio.insert(tk.END, f"    {resultado} = {arg1}\n")
+                    elif op == "DECLARAR":
+                        salida_intermedio.insert(tk.END, f"    DECLARAR {resultado}\n")
+                    elif op == "PRINT":
+                        salida_intermedio.insert(tk.END, f"    PRINT {arg1}\n")
+                    elif op == "READ":
+                        salida_intermedio.insert(tk.END, f"    READ {resultado}\n")
+                    else:
+                        salida_intermedio.insert(tk.END, f"    {op} {arg1} {arg2} {resultado}\n")
     except Exception as e:
         salida_semantico.insert(tk.END, f"Error en análisis semántico: {str(e)}\n")
         import traceback
-        salida_semantico.insert(tk.END, f"\nDetalles:\n{traceback.format_exc()}")
+        salida_semantico.insert(tk.END, f"\nDetalles de la excepción:\n{traceback.format_exc()}")
 
 def cargar_archivo():
+    """ Permite cargar un archivo de texto en la entrada de código. """
     archivo = filedialog.askopenfilename(filetypes=[("Archivos de texto", "*.txt")])
     if archivo:
         with open(archivo, "r") as f:
@@ -152,24 +139,29 @@ def cargar_archivo():
             entrada_texto.insert(tk.END, f.read())
 
 def limpiar_entrada():
+    """ Limpia el área de entrada de código. """
     entrada_texto.delete("1.0", tk.END)
 
 def limpiar_todo():
+    """ Limpia todas las áreas de texto. """
     entrada_texto.delete("1.0", tk.END)
     salida_tokens.delete("1.0", tk.END)
     salida_palabras.delete("1.0", tk.END)
     salida_errores.delete("1.0", tk.END)
     salida_sintactico.delete("1.0", tk.END)
     salida_semantico.delete("1.0", tk.END)
+    salida_intermedio.delete("1.0", tk.END)
 
-# ==== Interfaz Tkinter ====
+# Configuración de la interfaz gráfica
 root = tk.Tk()
 root.title("Analizador Léxico, Sintáctico y Semántico")
-root.geometry("900x800")
+root.geometry("1000x900")
 
+# Frame para botones
 frame_botones = tk.Frame(root)
 frame_botones.pack(pady=10)
 
+# Botones
 btn_cargar = tk.Button(frame_botones, text="Cargar Archivo", command=cargar_archivo)
 btn_cargar.pack(side=tk.LEFT, padx=5)
 
@@ -182,33 +174,40 @@ btn_limpiar_todo.pack(side=tk.LEFT, padx=5)
 btn_analizar = tk.Button(frame_botones, text="Analizar", command=analizar_codigo, bg="#4CAF50", fg="white")
 btn_analizar.pack(side=tk.LEFT, padx=5)
 
+# Frame principal
 frame_principal = tk.Frame(root)
 frame_principal.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
+# Área de entrada de código
 lbl_entrada = tk.Label(frame_principal, text="Código fuente:")
 lbl_entrada.pack(anchor=tk.W)
 
 entrada_texto = scrolledtext.ScrolledText(frame_principal, height=15, wrap=tk.WORD, font=("Courier", 10))
 entrada_texto.pack(pady=5, fill=tk.BOTH, expand=True)
 
+# Notebook para resultados
 lbl_resultados = tk.Label(frame_principal, text="Resultados del análisis:")
 lbl_resultados.pack(anchor=tk.W)
 
 notebook = ttk.Notebook(frame_principal)
 notebook.pack(pady=5, fill=tk.BOTH, expand=True)
 
+# Pestañas de resultados
 frame_tokens = tk.Frame(notebook)
 frame_palabras = tk.Frame(notebook)
 frame_errores = tk.Frame(notebook)
 frame_sintactico = tk.Frame(notebook)
 frame_semantico = tk.Frame(notebook)
+frame_intermedio = tk.Frame(notebook)
 
 notebook.add(frame_tokens, text="Tokens")
 notebook.add(frame_palabras, text="Palabras Reservadas")
 notebook.add(frame_errores, text="Errores Léxicos")
 notebook.add(frame_sintactico, text="Análisis Sintáctico")
 notebook.add(frame_semantico, text="Análisis Semántico")
+notebook.add(frame_intermedio, text="Código Intermedio")
 
+# Áreas de salida para cada pestaña
 salida_tokens = scrolledtext.ScrolledText(frame_tokens, height=10, wrap=tk.WORD)
 salida_tokens.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
@@ -224,6 +223,10 @@ salida_sintactico.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 salida_semantico = scrolledtext.ScrolledText(frame_semantico, height=10, wrap=tk.WORD, font=("Courier", 10))
 salida_semantico.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
+salida_intermedio = scrolledtext.ScrolledText(frame_intermedio, height=10, wrap=tk.WORD, font=("Courier", 10))
+salida_intermedio.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+# Barra de estado
 barra_estado = tk.Label(root, text="Listo", bd=1, relief=tk.SUNKEN, anchor=tk.W)
 barra_estado.pack(side=tk.BOTTOM, fill=tk.X)
 

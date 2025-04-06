@@ -530,3 +530,43 @@ class Interprete:
                 return izq >= der
         
         return 0  # Valor por defecto
+
+# Ejemplo de uso
+if __name__ == "__main__":
+    # Código de ejemplo para probar el compilador e intérprete
+    codigo_ejemplo = """
+    func init {
+        val x = 10;
+        val y = 5;
+        
+        if (x > y) {
+            escribir("x es mayor que y");
+        } else {
+            escribir("x no es mayor que y");
+        }
+        
+
+    }
+    """
+    
+    # Configurar entradas para el intérprete
+    entradas_ejemplo = ["Juan"]
+    
+    # Crear e inicializar el intérprete
+    interprete = Interprete(debug=True)
+    interprete.establecer_entradas(entradas_ejemplo)
+    
+    # Ejecutar el código
+    resultado = interprete.ejecutar(codigo_ejemplo)
+    
+    # Mostrar resultados
+    if resultado["exito"]:
+        print("\n=== EJECUCIÓN EXITOSA ===")
+        print("Salidas:", resultado["salidas"])
+        print("Estado final de la memoria:", resultado["memoria"])
+    else:
+        print("\n=== ERROR ===")
+        print(resultado["error"])
+        if "errores" in resultado:
+            for error in resultado["errores"]:
+                print(error)
