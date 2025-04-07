@@ -1,6 +1,7 @@
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedInput, UnexpectedToken, UnexpectedCharacters
 
+
 grammar = r"""
     ?start: programa
 
@@ -21,10 +22,10 @@ grammar = r"""
     declaracion_variable: "val" IDENTIFICADOR ("=" expresion)? ";"
     asignacion: IDENTIFICADOR "=" expresion ";"
     
-    estructura_if: "if" "(" expresion_logica ")" "{" instruccion* "}"
-    estructura_else: "if" "(" expresion_logica ")" "{" instruccion* "}" "else" "{" instruccion* "}"
-    estructura_while: "while" "(" expresion_logica ")" "{" instruccion* "}"
-    estructura_for: "for" "(" declaracion_variable expresion_logica ";" IDENTIFICADOR operador_incremento ")" "{" instruccion* "}"
+    estructura_if: "if" "(" condicion ")" "{" instruccion* "}"
+    estructura_else: "if" "(" condicion ")" "{" instruccion* "}" "else" "{" instruccion* "}"
+    estructura_while: "while" "(" condicion ")" "{" instruccion* "}"
+    estructura_for: "for" "(" declaracion_variable condicion ";" IDENTIFICADOR operador_incremento ")" "{" instruccion* "}"
     
     print_statement: "escribir" "(" expresion ")" ";"
     input_statement: "leer" "(" IDENTIFICADOR ")" ";"
@@ -33,21 +34,23 @@ grammar = r"""
     ?operador_incremento: "++"
                         | "--"
 
+    ?condicion: expresion_logica 
+              | valor_booleano
+              | IDENTIFICADOR  
+
     expresion_logica: expresion_relacional (LOGICO expresion_relacional)*
 
     ?expresion_relacional: expresion COMPARACION expresion
                          | "(" expresion_logica ")"
 
-    ?expresion: expresion_aritmetica
-
-    ?expresion_aritmetica: expresion_aritmetica OPERADOR_ARITMETICO termino -> operacion
-                         | termino
+    ?expresion: termino
+              | expresion OPERADOR_ARITMETICO termino -> operacion
 
     ?termino: NUMERO -> numero
-           | IDENTIFICADOR -> variable
-           | CADENA -> cadena
-           | "(" expresion ")" -> parentesis
-           | valor_booleano
+            | IDENTIFICADOR -> variable
+            | CADENA -> cadena
+            | "(" expresion ")" -> parentesis
+            | valor_booleano
 
     valor_booleano: "true" -> true
                   | "false" -> false
@@ -66,7 +69,6 @@ grammar = r"""
     %ignore WS
     %ignore COMENTARIO
 """
-
 
 # Crear el parser de Lark
 parser = Lark(grammar, parser='lalr', debug=True)
