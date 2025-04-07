@@ -1,8 +1,6 @@
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedInput, UnexpectedToken, UnexpectedCharacters
 
-
-
 grammar = r"""
     ?start: programa
 
