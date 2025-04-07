@@ -21,8 +21,14 @@ func init() {
     while (x < 10 && y > 0) {
     escribir("Dentro del ciclo");
 }
+    val ho = false;
+
+    if (ho) {
+     escribir("prueba booleno");
+    }
 
     gato();
+    
 }
 
 func gato() {

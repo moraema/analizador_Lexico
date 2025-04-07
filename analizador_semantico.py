@@ -1,7 +1,8 @@
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedInput, UnexpectedToken, UnexpectedCharacters
 
-# Definición de la gramática en Lark - Modificamos la definición de declaración de variables
+
+
 grammar = r"""
     ?start: programa
 
@@ -36,18 +37,22 @@ grammar = r"""
 
     expresion_logica: expresion_relacional (LOGICO expresion_relacional)*
 
-    expresion_relacional: expresion COMPARACION expresion
-                        | "(" expresion_logica ")"
+    ?expresion_relacional: expresion COMPARACION expresion
+                         | "(" expresion_logica ")"
 
     ?expresion: expresion_aritmetica
-    
+
     ?expresion_aritmetica: expresion_aritmetica OPERADOR_ARITMETICO termino -> operacion
-                        | termino
-    
+                         | termino
+
     ?termino: NUMERO -> numero
-            | IDENTIFICADOR -> variable
-            | CADENA -> cadena
-            | "(" expresion ")" -> parentesis
+           | IDENTIFICADOR -> variable
+           | CADENA -> cadena
+           | "(" expresion ")" -> parentesis
+           | valor_booleano
+
+    valor_booleano: "true" -> true
+                  | "false" -> false
 
     OPERADOR_ARITMETICO: "+" | "-" | "*" | "/"
     COMPARACION: "==" | "!=" | "<" | ">" | "<=" | ">="
@@ -64,10 +69,9 @@ grammar = r"""
     %ignore COMENTARIO
 """
 
+
 # Crear el parser de Lark
 parser = Lark(grammar, parser='lalr', debug=True)
-
-
 @v_args(inline=True)
 class ASTBuilder(Transformer):
     def __init__(self):
@@ -190,6 +194,16 @@ class ASTBuilder(Transformer):
         
         return {"tipo": "comparacion", "operador": str(operador), "izquierda": izquierda, "derecha": derecha}
     
+    def booleano(self, valor):
+        valor_bool = str(valor).lower() == "true"
+        return {"tipo": "booleano", "valor": valor_bool}
+    
+    def true(self):
+        return {"tipo": "booleano", "valor": True}
+    
+    def false(self):
+        return {"tipo": "booleano", "valor": False}
+    
     def numero(self, valor):
         if "." in str(valor):
             return {"tipo": "flotante", "valor": float(valor)}
@@ -228,6 +242,8 @@ class ASTBuilder(Transformer):
                 return "flotante"
             elif expresion["tipo"] == "cadena":
                 return "cadena"
+            elif expresion["tipo"] == "booleano":
+                return "booleano"
             elif expresion["tipo"] == "variable":
                 nombre_var = expresion["nombre"]
                 if nombre_var in self.tabla_simbolos:
@@ -518,6 +534,8 @@ class Interprete:
             return float(expresion.get("valor"))
         elif tipo_expr == "cadena":
             return str(expresion.get("valor"))
+        elif tipo_expr == "booleano":
+            return bool(expresion.get("valor"))
         elif tipo_expr == "variable":
             nombre = expresion.get("nombre")
             return self.memoria.get(nombre, 0)
