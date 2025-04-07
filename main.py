@@ -64,23 +64,29 @@ def draw_ast(ast):
 def mostrar_tabla_simbolos(resultado_semantico):
     # Crear una nueva ventana para la tabla
     ventana_tabla = tk.Toplevel(root)
-    ventana_tabla.title("Tabla de Símbolos")
-    ventana_tabla.geometry("500x400")
+    ventana_tabla.title("Tabla de Símbolos Completa")
+    ventana_tabla.geometry("900x600")
     
     # Crear un Frame para la tabla
     frame_tabla = ttk.Frame(ventana_tabla)
     frame_tabla.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
     
-    # Crear el Treeview (tabla)
+    # Crear el Treeview (tabla) con columnas adicionales
     tabla = ttk.Treeview(frame_tabla)
-    tabla["columns"] = ("tipo", "valor")
-    tabla.column("#0", width=120, minwidth=100)
-    tabla.column("tipo", width=120, minwidth=100)
-    tabla.column("valor", width=200, minwidth=150)
+    tabla["columns"] = ("ambito", "tipo", "valor", "funcion", "linea")
+    tabla.column("#0", width=150, minwidth=120)
+    tabla.column("ambito", width=80, minwidth=70)
+    tabla.column("tipo", width=100, minwidth=80)
+    tabla.column("valor", width=150, minwidth=120)
+    tabla.column("funcion", width=120, minwidth=100)
+    tabla.column("linea", width=80, minwidth=60)
     
     tabla.heading("#0", text="Variable", anchor=tk.W)
+    tabla.heading("ambito", text="Ámbito", anchor=tk.W)
     tabla.heading("tipo", text="Tipo", anchor=tk.W)
     tabla.heading("valor", text="Valor", anchor=tk.W)
+    tabla.heading("funcion", text="Función", anchor=tk.W)
+    tabla.heading("linea", text="Línea", anchor=tk.W)
     
     # Añadir scrollbars
     vsb = ttk.Scrollbar(frame_tabla, orient="vertical", command=tabla.yview)
@@ -95,15 +101,35 @@ def mostrar_tabla_simbolos(resultado_semantico):
     frame_tabla.grid_columnconfigure(0, weight=1)
     frame_tabla.grid_rowconfigure(0, weight=1)
     
-    # Añadir datos a la tabla
-    for variable, info in resultado_semantico["tabla_simbolos"].items():
-        tipo_var = info.get("tipo", "desconocido")
-        valor_var = info.get("valor", "No disponible")
-        tabla.insert("", tk.END, text=variable, values=(tipo_var, str(valor_var)))
+    # Función para agregar variables a la tabla
+    def agregar_variables(variables, ambito, funcion="", linea=0):
+        for var, info in variables.items():
+            tipo = info.get("tipo", "desconocido")
+            valor = str(info.get("valor", "No inicializado"))
+            tabla.insert("", tk.END, text=var, 
+                        values=(ambito, tipo, valor, funcion, linea))
     
-    # Añadir botón para cerrar la ventana
-    btn_cerrar = ttk.Button(ventana_tabla, text="Cerrar", command=ventana_tabla.destroy)
-    btn_cerrar.pack(pady=10)
+    # Añadir variables globales si existen
+    if "global" in resultado_semantico.get("tabla_simbolos", {}):
+        agregar_variables(resultado_semantico["tabla_simbolos"]["global"], "Global")
+    
+    # Añadir variables de todas las funciones
+    if "funciones" in resultado_semantico:
+        for nombre_func, func_info in resultado_semantico["funciones"].items():
+            # Añadir la entrada de la función misma
+            tabla.insert("", tk.END, text=nombre_func, 
+                        values=("Función", "function", "-", "-", "-"))
+            
+            # Añadir variables locales de la función
+            if "tabla_simbolos_local" in func_info:
+                agregar_variables(func_info["tabla_simbolos_local"], "Local", nombre_func)
+    
+    # Añadir botones adicionales
+    frame_botones = ttk.Frame(ventana_tabla)
+    frame_botones.pack(pady=10)
+    
+    btn_cerrar = ttk.Button(frame_botones, text="Cerrar", command=ventana_tabla.destroy)
+    btn_cerrar.pack(side=tk.LEFT, padx=5)
 
 # === Hierarchical Position Helper ===
 def hierarchy_pos(G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, xcenter=0.5):

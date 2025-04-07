@@ -76,10 +76,12 @@ parser = Lark(grammar, parser='lalr', debug=True)
 class ASTBuilder(Transformer):
     def __init__(self):
         super().__init__()
-        self.tabla_simbolos = {}
-        self.tabla_funciones = {}
-        self.llamadas_funciones = []  # Lista para almacenar las llamadas a funciones
+        self.tabla_simbolos_global = {}  # Para variables globales
+        self.tabla_funciones = {}        # Para funciones
+        self.llamadas_funciones = []     # Lista para almacenar las llamadas a funciones
         self.errores_semanticos = []
+        self.ambito_actual = None        # Para rastrear la función actual
+        self.tabla_simbolos_local = {}   # Para variables locales a la función actual
     
     def programa(self, *funciones):
         # Registrar todas las funciones primero
@@ -100,9 +102,16 @@ class ASTBuilder(Transformer):
     
     def func(self, nombre, *instrucciones):
         nombre_func = str(nombre)
+        self.ambito_actual = nombre_func
+        self.tabla_simbolos_local = {}  # Reiniciamos la tabla de símbolos local para esta función
+        
+        # Procesar las instrucciones de la función
+        instrucciones_procesadas = []
+        for inst in instrucciones:
+            instrucciones_procesadas.append(inst)
         
         # Devuelve el nodo de la función
-        return {"tipo": "funcion", "nombre": nombre_func, "instrucciones": list(instrucciones)}
+        return {"tipo": "funcion", "nombre": nombre_func, "instrucciones": instrucciones_procesadas}
     
     def llamada_funcion(self, nombre):
         nombre_func = str(nombre)
@@ -113,22 +122,36 @@ class ASTBuilder(Transformer):
     
     def declaracion_variable(self, identificador, *args):
         nombre_var = str(identificador)
-        # Verificar si la variable ya está declarada
-        if nombre_var in self.tabla_simbolos:
-            self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada")
-        else:
-            # Si hay un argumento, es la expresión de inicialización
-            if args:
-                expresion = args[0]
-                tipo_expr = self.inferir_tipo(expresion)
-                # Intentar evaluar el valor inicial (si es posible)
-                valor_inicial = self.evaluar_valor_inicial(expresion)
-                self.tabla_simbolos[nombre_var] = {"tipo": tipo_expr, "valor": valor_inicial}
-                return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
+        
+        # Verificar si la variable ya está declarada en el ámbito actual
+        if self.ambito_actual:  # Si estamos dentro de una función
+            if nombre_var in self.tabla_simbolos_local:
+                self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada en la función '{self.ambito_actual}'")
             else:
-                # Si no hay argumentos, es una declaración sin inicialización
-                self.tabla_simbolos[nombre_var] = {"tipo": "any", "valor": "No inicializado"}
-                return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
+                # Si hay un argumento, es la expresión de inicialización
+                if args:
+                    expresion = args[0]
+                    tipo_expr = self.inferir_tipo(expresion)
+                    valor_inicial = self.evaluar_valor_inicial(expresion)
+                    self.tabla_simbolos_local[nombre_var] = {"tipo": tipo_expr, "valor": valor_inicial}
+                    return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
+                else:
+                    # Si no hay argumentos, es una declaración sin inicialización
+                    self.tabla_simbolos_local[nombre_var] = {"tipo": "any", "valor": "No inicializado"}
+                    return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
+        else:  # Variable global
+            if nombre_var in self.tabla_simbolos_global:
+                self.errores_semanticos.append(f"Error semántico: Variable global '{nombre_var}' ya declarada")
+            else:
+                if args:
+                    expresion = args[0]
+                    tipo_expr = self.inferir_tipo(expresion)
+                    valor_inicial = self.evaluar_valor_inicial(expresion)
+                    self.tabla_simbolos_global[nombre_var] = {"tipo": tipo_expr, "valor": valor_inicial}
+                    return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
+                else:
+                    self.tabla_simbolos_global[nombre_var] = {"tipo": "any", "valor": "No inicializado"}
+                    return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
             
     def evaluar_valor_inicial(self, expresion):
         """Intenta evaluar el valor inicial de una expresión constante"""
@@ -145,14 +168,20 @@ class ASTBuilder(Transformer):
     
     def asignacion(self, identificador, expresion):
         nombre_var = str(identificador)
-        if nombre_var not in self.tabla_simbolos:
-            self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
-        else:
-            tipo_var = self.tabla_simbolos[nombre_var]["tipo"]
+        
+        # Primero buscamos en el ámbito local, luego en el global
+        if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
+            tipo_var = self.tabla_simbolos_local[nombre_var]["tipo"]
             tipo_expr = self.inferir_tipo(expresion)
-            # Permitir asignaciones entre enteros y flotantes
             if not self.tipos_compatibles(tipo_var, tipo_expr):
                 self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en asignación a '{nombre_var}'")
+        elif nombre_var in self.tabla_simbolos_global:
+            tipo_var = self.tabla_simbolos_global[nombre_var]["tipo"]
+            tipo_expr = self.inferir_tipo(expresion)
+            if not self.tipos_compatibles(tipo_var, tipo_expr):
+                self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en asignación a '{nombre_var}'")
+        else:
+            self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         
         return {"tipo": "asignacion", "nombre": nombre_var, "valor": expresion}
     
@@ -167,7 +196,9 @@ class ASTBuilder(Transformer):
     
     def estructura_for(self, inicializacion, condicion, variable, operador, cuerpo):
         nombre_var = str(variable)
-        if nombre_var not in self.tabla_simbolos:
+        
+        # Verificar si la variable está declarada (local o global)
+        if not (nombre_var in self.tabla_simbolos_local or nombre_var in self.tabla_simbolos_global):
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en bucle for")
         
         return {
@@ -185,7 +216,8 @@ class ASTBuilder(Transformer):
     def input_statement(self, identificador):
         nombre_var = str(identificador)
         
-        if nombre_var not in self.tabla_simbolos:
+        # Verificar si la variable está declarada (local o global)
+        if not (nombre_var in self.tabla_simbolos_local or nombre_var in self.tabla_simbolos_global):
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en input")
         
         return {"tipo": "leer", "variable": nombre_var}
@@ -227,10 +259,15 @@ class ASTBuilder(Transformer):
     
     def variable(self, nombre):
         nombre_var = str(nombre)
-        if nombre_var not in self.tabla_simbolos:
-            self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
         
-        return {"tipo": "variable", "nombre": nombre_var}
+        # Buscar primero en el ámbito local, luego en el global
+        if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
+            return {"tipo": "variable", "nombre": nombre_var}
+        elif nombre_var in self.tabla_simbolos_global:
+            return {"tipo": "variable", "nombre": nombre_var}
+        else:
+            self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada")
+            return {"tipo": "variable", "nombre": nombre_var}
     
     def cadena(self, valor):
         valor_str = str(valor)[1:-1]
@@ -261,8 +298,11 @@ class ASTBuilder(Transformer):
                 return "booleano"
             elif expresion["tipo"] == "variable":
                 nombre_var = expresion["nombre"]
-                if nombre_var in self.tabla_simbolos:
-                    return self.tabla_simbolos[nombre_var]["tipo"]
+                # Buscar primero en el ámbito local, luego en el global
+                if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
+                    return self.tabla_simbolos_local[nombre_var]["tipo"]
+                elif nombre_var in self.tabla_simbolos_global:
+                    return self.tabla_simbolos_global[nombre_var]["tipo"]
                 return "any"
             elif expresion["tipo"] == "operacion":
                 tipo_izq = self.inferir_tipo(expresion["izquierda"])
@@ -295,7 +335,10 @@ def analizar_programa(codigo):
         return {
             "exito": len(transformador.errores_semanticos) == 0,
             "ast": ast,
-            "tabla_simbolos": transformador.tabla_simbolos,
+            "tabla_simbolos": {
+                "global": transformador.tabla_simbolos_global,
+                "local": transformador.tabla_simbolos_local
+            },
             "tabla_funciones": transformador.tabla_funciones,
             "errores": transformador.errores_semanticos
         }
@@ -337,12 +380,13 @@ def imprimir_ast(ast, nivel=0):
 
 class Interprete:
     def __init__(self, debug=True):
-        self.memoria = {}
+        self.memoria_global = {}
+        self.memoria_local = {}
         self.entradas = []
         self.salidas = []
         self.debug = debug
         self.tabla_funciones = {}
-        self.tabla_simbolos = {}
+        self.ambito_actual = None
     
     def establecer_entradas(self, entradas):
         self.entradas = entradas
@@ -358,10 +402,10 @@ class Interprete:
             }
         
         try:
-            self.memoria = {}  
+            self.memoria_global = {}  
+            self.memoria_local = {}
             self.salidas = []
-            # Guarda una referencia a la tabla de símbolos del análisis
-            self.tabla_simbolos = resultado_analisis["tabla_simbolos"]
+            self.tabla_funciones = resultado_analisis["tabla_funciones"]
             
             ast = resultado_analisis["ast"]
             print(">>> Iniciando ejecución del programa <<<")
@@ -388,20 +432,13 @@ class Interprete:
                     }
             
             print(">>> Ejecución completada <<<")
-            print(">>> Estado final de la memoria:", self.memoria)
-            
-            # Actualizar los valores en la tabla de símbolos
-            for variable, valor in self.memoria.items():
-                if variable in self.tabla_simbolos:
-                    self.tabla_simbolos[variable]["valor"] = valor
-            
-            print(">>> Tabla de símbolos actualizada:", self.tabla_simbolos)
+            print(">>> Estado final de la memoria global:", self.memoria_global)
             print(">>> Salidas generadas:", self.salidas)
             
             return {
                 "exito": True,
-                "memoria": self.memoria,
-                "tabla_simbolos": self.tabla_simbolos,  # Devolvemos la tabla de símbolos actualizada
+                "memoria_global": self.memoria_global,
+                "memoria_local": self.memoria_local,
                 "salidas": self.salidas
             }
         except Exception as e:
@@ -418,11 +455,50 @@ class Interprete:
             print(f"Error: Función '{nombre_funcion}' no encontrada")
             return
         
+        # Guardar el ámbito anterior
+        ambito_anterior = self.ambito_actual
+        memoria_local_anterior = self.memoria_local
+        
+        # Establecer nuevo ámbito
+        self.ambito_actual = nombre_funcion
+        self.memoria_local = {}
+        
         funcion = self.tabla_funciones[nombre_funcion]
         instrucciones = funcion.get("instrucciones", [])
         
         for instruccion in instrucciones:
             self.ejecutar_nodo(instruccion)
+        
+        # Restaurar el ámbito anterior
+        self.ambito_actual = ambito_anterior
+        self.memoria_local = memoria_local_anterior
+    
+    def obtener_variable(self, nombre):
+        """Busca una variable primero en el ámbito local, luego en el global"""
+        if self.ambito_actual and nombre in self.memoria_local:
+            return self.memoria_local[nombre]
+        elif nombre in self.memoria_global:
+            return self.memoria_global[nombre]
+        else:
+            if self.debug:
+                print(f"Advertencia: Variable '{nombre}' no encontrada, se asume 0")
+            return 0
+    
+    def asignar_variable(self, nombre, valor):
+        """Asigna una variable en el ámbito correcto"""
+        if self.ambito_actual:
+            # Si estamos en una función y la variable existe localmente
+            if nombre in self.memoria_local:
+                self.memoria_local[nombre] = valor
+            # Si existe globalmente, la asignamos allí (a menos que sea shadowing)
+            elif nombre in self.memoria_global:
+                self.memoria_global[nombre] = valor
+            else:
+                # Por defecto, creamos la variable en el ámbito local
+                self.memoria_local[nombre] = valor
+        else:
+            # Ámbito global
+            self.memoria_global[nombre] = valor
     
     def ejecutar_nodo(self, nodo):
         if isinstance(nodo, dict):
@@ -445,14 +521,14 @@ class Interprete:
             elif tipo_nodo == "declaracion_variable":
                 nombre = nodo.get("nombre")
                 valor = self.evaluar_expresion(nodo.get("valor")) if nodo.get("valor") is not None else 0
-                self.memoria[nombre] = valor
+                self.asignar_variable(nombre, valor)
                 if self.debug:
                     print(f"DECLARACIÓN: {nombre} = {valor}")
             
             elif tipo_nodo == "asignacion":
                 nombre = nodo.get("nombre")
                 valor = self.evaluar_expresion(nodo.get("valor"))
-                self.memoria[nombre] = valor
+                self.asignar_variable(nombre, valor)
                 if self.debug:
                     print(f"ASIGNACIÓN: {nombre} = {valor}")
             
@@ -510,16 +586,18 @@ class Interprete:
                     
                     variable = nodo.get("variable")
                     operador = nodo.get("operador")
-                    valor_anterior = self.memoria.get(variable, 0)
+                    valor_anterior = self.obtener_variable(variable)
                     
                     if operador == "++":
-                        self.memoria[variable] = valor_anterior + 1
+                        nuevo_valor = valor_anterior + 1
+                        self.asignar_variable(variable, nuevo_valor)
                         if self.debug:
-                            print(f"INCREMENTO: {variable} = {valor_anterior} + 1 = {self.memoria[variable]}")
+                            print(f"INCREMENTO: {variable} = {valor_anterior} + 1 = {nuevo_valor}")
                     elif operador == "--":
-                        self.memoria[variable] = valor_anterior - 1
+                        nuevo_valor = valor_anterior - 1
+                        self.asignar_variable(variable, nuevo_valor)
                         if self.debug:
-                            print(f"DECREMENTO: {variable} = {valor_anterior} - 1 = {self.memoria[variable]}")
+                            print(f"DECREMENTO: {variable} = {valor_anterior} - 1 = {nuevo_valor}")
                     
                     iteracion += 1
             
@@ -535,11 +613,11 @@ class Interprete:
                 variable = nodo.get("variable")
                 if self.entradas:
                     valor = self.entradas.pop(0)
-                    self.memoria[variable] = valor
+                    self.asignar_variable(variable, valor)
                     if self.debug:
                         print(f"LEER: {variable} = {valor}")
                 else:
-                    self.memoria[variable] = 0
+                    self.asignar_variable(variable, 0)
                     if self.debug:
                         print(f"LEER (sin entrada disponible): {variable} = 0")
         
@@ -564,7 +642,7 @@ class Interprete:
             return bool(expresion.get("valor"))
         elif tipo_expr == "variable":
             nombre = expresion.get("nombre")
-            return self.memoria.get(nombre, 0)
+            return self.obtener_variable(nombre)
         elif tipo_expr == "operacion":
             izq = self.evaluar_expresion(expresion.get("izquierda"))
             der = self.evaluar_expresion(expresion.get("derecha"))
