@@ -65,20 +65,20 @@ def mostrar_tabla_simbolos(resultado_semantico):
     # Crear una nueva ventana para la tabla
     ventana_tabla = tk.Toplevel(root)
     ventana_tabla.title("Tabla de Símbolos Completa")
-    ventana_tabla.geometry("900x600")
+    ventana_tabla.geometry("1000x600")
     
     # Crear un Frame para la tabla
     frame_tabla = ttk.Frame(ventana_tabla)
     frame_tabla.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
     
-    # Crear el Treeview (tabla) con columnas adicionales
+    # Crear el Treeview (tabla) con columnas
     tabla = ttk.Treeview(frame_tabla)
     tabla["columns"] = ("ambito", "tipo", "valor", "funcion", "linea")
     tabla.column("#0", width=150, minwidth=120)
-    tabla.column("ambito", width=80, minwidth=70)
+    tabla.column("ambito", width=100, minwidth=80)
     tabla.column("tipo", width=100, minwidth=80)
-    tabla.column("valor", width=150, minwidth=120)
-    tabla.column("funcion", width=120, minwidth=100)
+    tabla.column("valor", width=200, minwidth=120)
+    tabla.column("funcion", width=150, minwidth=100)
     tabla.column("linea", width=80, minwidth=60)
     
     tabla.heading("#0", text="Variable", anchor=tk.W)
@@ -103,26 +103,46 @@ def mostrar_tabla_simbolos(resultado_semantico):
     
     # Función para agregar variables a la tabla
     def agregar_variables(variables, ambito, funcion="", linea=0):
-        for var, info in variables.items():
-            tipo = info.get("tipo", "desconocido")
-            valor = str(info.get("valor", "No inicializado"))
-            tabla.insert("", tk.END, text=var, 
-                        values=(ambito, tipo, valor, funcion, linea))
+        if variables:
+            for var, info in variables.items():
+                tipo = info.get("tipo", "desconocido")
+                valor = str(info.get("valor", "No inicializado"))
+                tabla.insert("", tk.END, text=var, 
+                            values=(ambito, tipo, valor, funcion, linea))
     
     # Añadir variables globales si existen
-    if "global" in resultado_semantico.get("tabla_simbolos", {}):
-        agregar_variables(resultado_semantico["tabla_simbolos"]["global"], "Global")
+    if "tabla_simbolos" in resultado_semantico:
+        if "global" in resultado_semantico["tabla_simbolos"]:
+            agregar_variables(resultado_semantico["tabla_simbolos"]["global"], "Global")
     
-    # Añadir variables de todas las funciones
-    if "funciones" in resultado_semantico:
-        for nombre_func, func_info in resultado_semantico["funciones"].items():
-            # Añadir la entrada de la función misma
+    # Añadir funciones y sus variables locales
+    if "ast" in resultado_semantico and "funciones" in resultado_semantico["ast"]:
+        for funcion in resultado_semantico["ast"]["funciones"]:
+            nombre_func = funcion.get("nombre", "")
+            
+            # Añadir la función misma
             tabla.insert("", tk.END, text=nombre_func, 
                         values=("Función", "function", "-", "-", "-"))
             
-            # Añadir variables locales de la función
-            if "tabla_simbolos_local" in func_info:
-                agregar_variables(func_info["tabla_simbolos_local"], "Local", nombre_func)
+            # Buscar todas las declaraciones de variables en las instrucciones
+            variables_locales = {}
+            for inst in funcion.get("instrucciones", []):
+                if isinstance(inst, dict) and inst.get("tipo") == "declaracion_variable":
+                    nombre_var = inst.get("nombre", "")
+                    tipo = "any"  # Tipo por defecto para variables no inicializadas
+                    valor = "No inicializado"
+                    
+                    # Si tiene valor, obtener el tipo y valor
+                    if inst.get("valor") is not None:
+                        if isinstance(inst["valor"], dict):
+                            tipo = inst["valor"].get("tipo", "any")
+                            valor = inst["valor"].get("valor", "No inicializado")
+                    
+                    variables_locales[nombre_var] = {"tipo": tipo, "valor": valor}
+            
+            # Añadir las variables encontradas
+            if variables_locales:
+                agregar_variables(variables_locales, "Local", nombre_func)
     
     # Añadir botones adicionales
     frame_botones = ttk.Frame(ventana_tabla)
