@@ -121,12 +121,27 @@ class ASTBuilder(Transformer):
             if args:
                 expresion = args[0]
                 tipo_expr = self.inferir_tipo(expresion)
-                self.tabla_simbolos[nombre_var] = {"tipo": tipo_expr}
+                # Intentar evaluar el valor inicial (si es posible)
+                valor_inicial = self.evaluar_valor_inicial(expresion)
+                self.tabla_simbolos[nombre_var] = {"tipo": tipo_expr, "valor": valor_inicial}
                 return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": expresion}
             else:
                 # Si no hay argumentos, es una declaración sin inicialización
-                self.tabla_simbolos[nombre_var] = {"tipo": "any"}
+                self.tabla_simbolos[nombre_var] = {"tipo": "any", "valor": "No inicializado"}
                 return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
+            
+    def evaluar_valor_inicial(self, expresion):
+        """Intenta evaluar el valor inicial de una expresión constante"""
+        if isinstance(expresion, dict):
+            if expresion["tipo"] == "entero":
+                return expresion["valor"]
+            elif expresion["tipo"] == "flotante":
+                return expresion["valor"]
+            elif expresion["tipo"] == "cadena":
+                return f'"{expresion["valor"]}"'
+            elif expresion["tipo"] == "booleano":
+                return "true" if expresion["valor"] else "false"
+        return "Expresión compleja"
     
     def asignacion(self, identificador, expresion):
         nombre_var = str(identificador)
@@ -327,6 +342,7 @@ class Interprete:
         self.salidas = []
         self.debug = debug
         self.tabla_funciones = {}
+        self.tabla_simbolos = {}
     
     def establecer_entradas(self, entradas):
         self.entradas = entradas
@@ -343,7 +359,9 @@ class Interprete:
         
         try:
             self.memoria = {}  
-            self.salidas = []  
+            self.salidas = []
+            # Guarda una referencia a la tabla de símbolos del análisis
+            self.tabla_simbolos = resultado_analisis["tabla_simbolos"]
             
             ast = resultado_analisis["ast"]
             print(">>> Iniciando ejecución del programa <<<")
@@ -371,11 +389,19 @@ class Interprete:
             
             print(">>> Ejecución completada <<<")
             print(">>> Estado final de la memoria:", self.memoria)
+            
+            # Actualizar los valores en la tabla de símbolos
+            for variable, valor in self.memoria.items():
+                if variable in self.tabla_simbolos:
+                    self.tabla_simbolos[variable]["valor"] = valor
+            
+            print(">>> Tabla de símbolos actualizada:", self.tabla_simbolos)
             print(">>> Salidas generadas:", self.salidas)
             
             return {
                 "exito": True,
                 "memoria": self.memoria,
+                "tabla_simbolos": self.tabla_simbolos,  # Devolvemos la tabla de símbolos actualizada
                 "salidas": self.salidas
             }
         except Exception as e:

@@ -60,6 +60,51 @@ def draw_ast(ast):
     plt.savefig("ast.png")
     plt.close()
 
+
+def mostrar_tabla_simbolos(resultado_semantico):
+    # Crear una nueva ventana para la tabla
+    ventana_tabla = tk.Toplevel(root)
+    ventana_tabla.title("Tabla de Símbolos")
+    ventana_tabla.geometry("500x400")
+    
+    # Crear un Frame para la tabla
+    frame_tabla = ttk.Frame(ventana_tabla)
+    frame_tabla.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    
+    # Crear el Treeview (tabla)
+    tabla = ttk.Treeview(frame_tabla)
+    tabla["columns"] = ("tipo", "valor")
+    tabla.column("#0", width=120, minwidth=100)
+    tabla.column("tipo", width=120, minwidth=100)
+    tabla.column("valor", width=200, minwidth=150)
+    
+    tabla.heading("#0", text="Variable", anchor=tk.W)
+    tabla.heading("tipo", text="Tipo", anchor=tk.W)
+    tabla.heading("valor", text="Valor", anchor=tk.W)
+    
+    # Añadir scrollbars
+    vsb = ttk.Scrollbar(frame_tabla, orient="vertical", command=tabla.yview)
+    hsb = ttk.Scrollbar(frame_tabla, orient="horizontal", command=tabla.xview)
+    tabla.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+    
+    # Posicionamiento del grid
+    tabla.grid(column=0, row=0, sticky='nsew')
+    vsb.grid(column=1, row=0, sticky='ns')
+    hsb.grid(column=0, row=1, sticky='ew')
+    
+    frame_tabla.grid_columnconfigure(0, weight=1)
+    frame_tabla.grid_rowconfigure(0, weight=1)
+    
+    # Añadir datos a la tabla
+    for variable, info in resultado_semantico["tabla_simbolos"].items():
+        tipo_var = info.get("tipo", "desconocido")
+        valor_var = info.get("valor", "No disponible")
+        tabla.insert("", tk.END, text=variable, values=(tipo_var, str(valor_var)))
+    
+    # Añadir botón para cerrar la ventana
+    btn_cerrar = ttk.Button(ventana_tabla, text="Cerrar", command=ventana_tabla.destroy)
+    btn_cerrar.pack(pady=10)
+
 # === Hierarchical Position Helper ===
 def hierarchy_pos(G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, xcenter=0.5):
     if not nx.is_tree(G):
@@ -126,10 +171,9 @@ def analizar_codigo():
         else:
             salida_semantico.insert(tk.END, "=== ANÁLISIS SEMÁNTICO CORRECTO ===\n")
 
-            salida_semantico.insert(tk.END, "\n=== TABLA DE SÍMBOLOS ===\n")
-            for variable, info in resultado_semantico["tabla_simbolos"].items():
-                tipo_var = info.get("tipo", "desconocido")
-                salida_semantico.insert(tk.END, f"• Variable: {variable}, Tipo: {tipo_var}\n")
+            btn_tabla = ttk.Button(frame_semantico, text="Ver Tabla de Símbolos", 
+                                  command=lambda: mostrar_tabla_simbolos(resultado_semantico))
+            btn_tabla.pack(pady=5)
 
             salida_semantico.insert(tk.END, "\n=== ÁRBOL DE SINTAXIS ===\n")
             ast_formateado = formatear_ast(resultado_semantico["ast"])
