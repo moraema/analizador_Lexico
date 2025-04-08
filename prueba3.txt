@@ -27,6 +27,12 @@ func init() {
      escribir("prueba booleno");
     }
 
+
+    val contador = 0;
+    while (contador < 5) {
+        escribir("Contador con while ");
+        contador = contador + 1;
+    }
     gato();
     
 }

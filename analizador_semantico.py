@@ -76,15 +76,15 @@ parser = Lark(grammar, parser='lalr', debug=True)
 class ASTBuilder(Transformer):
     def __init__(self):
         super().__init__()
-        self.tabla_simbolos_global = {}  # Para variables globales
-        self.tabla_funciones = {}        # Para funciones
-        self.llamadas_funciones = []     # Lista para almacenar las llamadas a funciones
+        self.tabla_simbolos_global = {}  
+        self.tabla_funciones = {}       
+        self.llamadas_funciones = []     
         self.errores_semanticos = []
-        self.ambito_actual = None        # Para rastrear la función actual
-        self.tabla_simbolos_local = {}   # Para variables locales a la función actual
+        self.ambito_actual = None        
+        self.tabla_simbolos_local = {}   
     
     def programa(self, *funciones):
-        # Registrar todas las funciones primero
+    
         for func in funciones:
             nombre_func = func.get("nombre")
             self.tabla_funciones[nombre_func] = func
@@ -93,7 +93,7 @@ class ASTBuilder(Transformer):
         if "init" not in self.tabla_funciones:
             self.errores_semanticos.append("Error semántico: Debe existir una función 'init'")
         
-        # Verificar las llamadas a funciones pendientes
+     
         for llamada in self.llamadas_funciones:
             if llamada not in self.tabla_funciones:
                 self.errores_semanticos.append(f"Error semántico: Función '{llamada}' no declarada")
@@ -103,19 +103,19 @@ class ASTBuilder(Transformer):
     def func(self, nombre, *instrucciones):
         nombre_func = str(nombre)
         self.ambito_actual = nombre_func
-        self.tabla_simbolos_local = {}  # Reiniciamos la tabla de símbolos local para esta función
+        self.tabla_simbolos_local = {}  
         
-        # Procesar las instrucciones de la función
+      
         instrucciones_procesadas = []
         for inst in instrucciones:
             instrucciones_procesadas.append(inst)
         
-        # Devuelve el nodo de la función
+        
         return {"tipo": "funcion", "nombre": nombre_func, "instrucciones": instrucciones_procesadas}
     
     def llamada_funcion(self, nombre):
         nombre_func = str(nombre)
-        # Registrar la llamada para verificarla al final
+       
         self.llamadas_funciones.append(nombre_func)
         
         return {"tipo": "llamada_funcion", "nombre": nombre_func}
@@ -124,11 +124,11 @@ class ASTBuilder(Transformer):
         nombre_var = str(identificador)
         
         # Verificar si la variable ya está declarada en el ámbito actual
-        if self.ambito_actual:  # Si estamos dentro de una función
+        if self.ambito_actual: 
             if nombre_var in self.tabla_simbolos_local:
-                self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada en la función '{self.ambito_actual}'")
+                self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada en la función")
             else:
-                # Si hay un argumento, es la expresión de inicialización
+                
                 if args:
                     expresion = args[0]
                     tipo_expr = self.inferir_tipo(expresion)
@@ -139,9 +139,9 @@ class ASTBuilder(Transformer):
                     # Si no hay argumentos, es una declaración sin inicialización
                     self.tabla_simbolos_local[nombre_var] = {"tipo": "any", "valor": "No inicializado"}
                     return {"tipo": "declaracion_variable", "nombre": nombre_var, "valor": None}
-        else:  # Variable global
+        else:  
             if nombre_var in self.tabla_simbolos_global:
-                self.errores_semanticos.append(f"Error semántico: Variable global '{nombre_var}' ya declarada")
+                self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' ya declarada")
             else:
                 if args:
                     expresion = args[0]
@@ -169,7 +169,7 @@ class ASTBuilder(Transformer):
     def asignacion(self, identificador, expresion):
         nombre_var = str(identificador)
         
-        # Primero buscamos en el ámbito local, luego en el global
+        
         if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
             tipo_var = self.tabla_simbolos_local[nombre_var]["tipo"]
             tipo_expr = self.inferir_tipo(expresion)
@@ -185,19 +185,24 @@ class ASTBuilder(Transformer):
         
         return {"tipo": "asignacion", "nombre": nombre_var, "valor": expresion}
     
-    def estructura_if(self, condicion, cuerpo):
-        return {"tipo": "if", "condicion": condicion, "cuerpo": cuerpo}
+    def estructura_if(self, condicion, *instrucciones):
+      
+        instrucciones_lista = list(instrucciones)
+        return {"tipo": "if", "condicion": condicion, "cuerpo": instrucciones_lista}
     
     def estructura_else(self, condicion, cuerpo_if, cuerpo_else):
         return {"tipo": "if_else", "condicion": condicion, "cuerpo_if": cuerpo_if, "cuerpo_else": cuerpo_else}
     
-    def estructura_while(self, condicion, cuerpo):
-        return {"tipo": "while", "condicion": condicion, "cuerpo": cuerpo}
+    def estructura_while(self, condicion, *instrucciones):
+       
+        instrucciones_lista = list(instrucciones)
+        return {"tipo": "while", "condicion": condicion, "cuerpo": instrucciones_lista}
     
-    def estructura_for(self, inicializacion, condicion, variable, operador, cuerpo):
+    def estructura_for(self, inicializacion, condicion, variable, operador, *instrucciones):
         nombre_var = str(variable)
+        instrucciones_lista = list(instrucciones)
         
-        # Verificar si la variable está declarada (local o global)
+        
         if not (nombre_var in self.tabla_simbolos_local or nombre_var in self.tabla_simbolos_global):
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en bucle for")
         
@@ -207,7 +212,7 @@ class ASTBuilder(Transformer):
             "condicion": condicion, 
             "variable": nombre_var,
             "operador": operador,
-            "cuerpo": cuerpo
+            "cuerpo": instrucciones_lista
         }
     
     def print_statement(self, expresion):
@@ -216,7 +221,7 @@ class ASTBuilder(Transformer):
     def input_statement(self, identificador):
         nombre_var = str(identificador)
         
-        # Verificar si la variable está declarada (local o global)
+       
         if not (nombre_var in self.tabla_simbolos_local or nombre_var in self.tabla_simbolos_global):
             self.errores_semanticos.append(f"Error semántico: Variable '{nombre_var}' no declarada en input")
         
@@ -235,7 +240,7 @@ class ASTBuilder(Transformer):
         tipo_izq = self.inferir_tipo(izquierda)
         tipo_der = self.inferir_tipo(derecha)
         
-        # Verificar compatibilidad de tipos en comparaciones
+      
         if not self.tipos_compatibles(tipo_izq, tipo_der):
             self.errores_semanticos.append(f"Error semántico: Incompatibilidad de tipos en comparación")
         
@@ -260,7 +265,7 @@ class ASTBuilder(Transformer):
     def variable(self, nombre):
         nombre_var = str(nombre)
         
-        # Buscar primero en el ámbito local, luego en el global
+     
         if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
             return {"tipo": "variable", "nombre": nombre_var}
         elif nombre_var in self.tabla_simbolos_global:
@@ -277,7 +282,7 @@ class ASTBuilder(Transformer):
         return expresion
     
     def tipos_compatibles(self, tipo1, tipo2):
-        # Consideramos enteros y flotantes como compatibles entre sí
+      
         if tipo1 == tipo2:
             return True
         if (tipo1 == "entero" and tipo2 == "flotante") or (tipo1 == "flotante" and tipo2 == "entero"):
@@ -298,7 +303,7 @@ class ASTBuilder(Transformer):
                 return "booleano"
             elif expresion["tipo"] == "variable":
                 nombre_var = expresion["nombre"]
-                # Buscar primero en el ámbito local, luego en el global
+              
                 if self.ambito_actual and nombre_var in self.tabla_simbolos_local:
                     return self.tabla_simbolos_local[nombre_var]["tipo"]
                 elif nombre_var in self.tabla_simbolos_global:
@@ -308,16 +313,16 @@ class ASTBuilder(Transformer):
                 tipo_izq = self.inferir_tipo(expresion["izquierda"])
                 tipo_der = self.inferir_tipo(expresion["derecha"])
                 
-                # Si ambos son del mismo tipo, devolver ese tipo
+               
                 if tipo_izq == tipo_der:
                     return tipo_izq
-                # Si uno es flotante, el resultado es flotante
+                
                 elif "flotante" in [tipo_izq, tipo_der]:
                     return "flotante"
-                # Si alguno es any, devolver any
+              
                 elif "any" in [tipo_izq, tipo_der]:
                     return "any"
-                # Otros casos (que no deberían ocurrir si la verificación de tipos es correcta)
+               
                 else:
                     return "any"
         
@@ -539,7 +544,8 @@ class Interprete:
                 if condicion:
                     if self.debug:
                         print("EJECUTANDO BLOQUE IF")
-                    self.ejecutar_nodo(nodo.get("cuerpo"))
+                    for instruccion in nodo.get("cuerpo", []):
+                        self.ejecutar_nodo(instruccion)
             
             elif tipo_nodo == "if_else":
                 condicion = self.evaluar_expresion(nodo.get("condicion"))
@@ -548,13 +554,16 @@ class Interprete:
                 if condicion:
                     if self.debug:
                         print("EJECUTANDO BLOQUE IF")
-                    self.ejecutar_nodo(nodo.get("cuerpo_if"))
+                    for instruccion in nodo.get("cuerpo_if", []):
+                        self.ejecutar_nodo(instruccion)
                 else:
                     if self.debug:
                         print("EJECUTANDO BLOQUE ELSE")
-                    self.ejecutar_nodo(nodo.get("cuerpo_else"))
+                    for instruccion in nodo.get("cuerpo_else", []):
+                        self.ejecutar_nodo(instruccion)
             
             elif tipo_nodo == "while":
+                # Modificado para manejar correctamente el cuerpo del while
                 iteracion = 0
                 while True:
                     condicion = self.evaluar_expresion(nodo.get("condicion"))
@@ -562,9 +571,15 @@ class Interprete:
                         print(f"EVALUACIÓN WHILE (iteración {iteracion}): condición = {condicion}")
                     if not condicion:
                         break
+                    
                     if self.debug:
                         print(f"EJECUTANDO CUERPO WHILE (iteración {iteracion})")
-                    self.ejecutar_nodo(nodo.get("cuerpo"))
+                    
+                    # Ejecutar cada instrucción en el cuerpo del while
+                    cuerpo = nodo.get("cuerpo", [])
+                    for instruccion in cuerpo:
+                        self.ejecutar_nodo(instruccion)
+                    
                     iteracion += 1
             
             elif tipo_nodo == "for":
@@ -582,7 +597,11 @@ class Interprete:
                     
                     if self.debug:
                         print(f"EJECUTANDO CUERPO FOR (iteración {iteracion})")
-                    self.ejecutar_nodo(nodo.get("cuerpo"))
+                    
+                    # Ejecutar cada instrucción en el cuerpo del for
+                    cuerpo = nodo.get("cuerpo", [])
+                    for instruccion in cuerpo:
+                        self.ejecutar_nodo(instruccion)
                     
                     variable = nodo.get("variable")
                     operador = nodo.get("operador")
@@ -624,6 +643,7 @@ class Interprete:
         elif isinstance(nodo, list):
             for elemento in nodo:
                 self.ejecutar_nodo(elemento)
+
     
     def evaluar_expresion(self, expresion):
         """Evalúa una expresión y devuelve su valor"""

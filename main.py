@@ -71,22 +71,20 @@ def mostrar_tabla_simbolos(resultado_semantico):
     frame_tabla = ttk.Frame(ventana_tabla)
     frame_tabla.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
     
-    # Crear el Treeview (tabla) con columnas
+
     tabla = ttk.Treeview(frame_tabla)
-    tabla["columns"] = ("ambito", "tipo", "valor", "funcion", "linea")
+    tabla["columns"] = ("ambito", "tipo", "valor", "funcion")
     tabla.column("#0", width=150, minwidth=120)
     tabla.column("ambito", width=100, minwidth=80)
     tabla.column("tipo", width=100, minwidth=80)
     tabla.column("valor", width=200, minwidth=120)
     tabla.column("funcion", width=150, minwidth=100)
-    tabla.column("linea", width=80, minwidth=60)
     
     tabla.heading("#0", text="Variable", anchor=tk.W)
     tabla.heading("ambito", text="Ámbito", anchor=tk.W)
     tabla.heading("tipo", text="Tipo", anchor=tk.W)
     tabla.heading("valor", text="Valor", anchor=tk.W)
     tabla.heading("funcion", text="Función", anchor=tk.W)
-    tabla.heading("linea", text="Línea", anchor=tk.W)
     
     # Añadir scrollbars
     vsb = ttk.Scrollbar(frame_tabla, orient="vertical", command=tabla.yview)
@@ -101,7 +99,7 @@ def mostrar_tabla_simbolos(resultado_semantico):
     frame_tabla.grid_columnconfigure(0, weight=1)
     frame_tabla.grid_rowconfigure(0, weight=1)
     
-    # Función para agregar variables a la tabla
+
     def agregar_variables(variables, ambito, funcion="", linea=0):
         if variables:
             for var, info in variables.items():
@@ -109,30 +107,25 @@ def mostrar_tabla_simbolos(resultado_semantico):
                 valor = str(info.get("valor", "No inicializado"))
                 tabla.insert("", tk.END, text=var, 
                             values=(ambito, tipo, valor, funcion, linea))
-    
-    # Añadir variables globales si existen
-    if "tabla_simbolos" in resultado_semantico:
-        if "global" in resultado_semantico["tabla_simbolos"]:
-            agregar_variables(resultado_semantico["tabla_simbolos"]["global"], "Global")
-    
-    # Añadir funciones y sus variables locales
+
+
     if "ast" in resultado_semantico and "funciones" in resultado_semantico["ast"]:
         for funcion in resultado_semantico["ast"]["funciones"]:
             nombre_func = funcion.get("nombre", "")
             
-            # Añadir la función misma
+           
             tabla.insert("", tk.END, text=nombre_func, 
                         values=("Función", "function", "-", "-", "-"))
             
-            # Buscar todas las declaraciones de variables en las instrucciones
+           
             variables_locales = {}
             for inst in funcion.get("instrucciones", []):
                 if isinstance(inst, dict) and inst.get("tipo") == "declaracion_variable":
                     nombre_var = inst.get("nombre", "")
-                    tipo = "any"  # Tipo por defecto para variables no inicializadas
+                    tipo = "any"  
                     valor = "No inicializado"
                     
-                    # Si tiene valor, obtener el tipo y valor
+                   
                     if inst.get("valor") is not None:
                         if isinstance(inst["valor"], dict):
                             tipo = inst["valor"].get("tipo", "any")
@@ -151,7 +144,7 @@ def mostrar_tabla_simbolos(resultado_semantico):
     btn_cerrar = ttk.Button(frame_botones, text="Cerrar", command=ventana_tabla.destroy)
     btn_cerrar.pack(side=tk.LEFT, padx=5)
 
-# === Hierarchical Position Helper ===
+
 def hierarchy_pos(G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, xcenter=0.5):
     if not nx.is_tree(G):
         raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
@@ -174,8 +167,14 @@ def hierarchy_pos(G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, xcenter=0.5
 
     return _hierarchy_pos(G, root, 0, width, vert_loc, xcenter)
 
+
+tabla_simbolos_btn = None
+ultimo_resultado_semantico = None
+
 # === Análisis principal ===
 def analizar_codigo():
+    global tabla_simbolos_btn, ultimo_resultado_semantico
+    
     codigo = entrada_texto.get("1.0", tk.END).strip()
 
     salida_tokens.delete("1.0", tk.END)
@@ -183,6 +182,10 @@ def analizar_codigo():
     salida_errores.delete("1.0", tk.END)
     salida_sintactico.delete("1.0", tk.END)
     salida_semantico.delete("1.0", tk.END)
+    
+   
+    if tabla_simbolos_btn is not None:
+        tabla_simbolos_btn.pack_forget()
 
     tokens_detectados, palabras_reservadas_detectadas, errores_detectados = analisis(codigo)
 
@@ -204,6 +207,7 @@ def analizar_codigo():
 
     try:
         resultado_semantico = analizar_programa(codigo)
+        ultimo_resultado_semantico = resultado_semantico 
 
         if not resultado_semantico["exito"]:
             salida_semantico.insert(tk.END, "=== ERRORES SEMÁNTICOS ===\n")
@@ -217,16 +221,18 @@ def analizar_codigo():
         else:
             salida_semantico.insert(tk.END, "=== ANÁLISIS SEMÁNTICO CORRECTO ===\n")
 
-            btn_tabla = ttk.Button(frame_semantico, text="Ver Tabla de Símbolos", 
-                                  command=lambda: mostrar_tabla_simbolos(resultado_semantico))
-            btn_tabla.pack(pady=5)
+           
+            if tabla_simbolos_btn is None:
+                tabla_simbolos_btn = ttk.Button(frame_semantico, text="Ver Tabla de Símbolos", 
+                                               command=lambda: mostrar_tabla_simbolos(resultado_semantico))
+            else:
+                tabla_simbolos_btn.config(command=lambda: mostrar_tabla_simbolos(resultado_semantico))
+            
+            tabla_simbolos_btn.pack(pady=5)
 
             salida_semantico.insert(tk.END, "\n=== ÁRBOL DE SINTAXIS ===\n")
             ast_formateado = formatear_ast(resultado_semantico["ast"])
             salida_semantico.insert(tk.END, ast_formateado)
-
-        
-
     except Exception as e:
         salida_semantico.insert(tk.END, f"Error en análisis semántico: {str(e)}\n")
         import traceback
@@ -243,12 +249,18 @@ def limpiar_entrada():
     entrada_texto.delete("1.0", tk.END)
 
 def limpiar_todo():
+    global tabla_simbolos_btn
+    
     entrada_texto.delete("1.0", tk.END)
     salida_tokens.delete("1.0", tk.END)
     salida_palabras.delete("1.0", tk.END)
     salida_errores.delete("1.0", tk.END)
     salida_sintactico.delete("1.0", tk.END)
     salida_semantico.delete("1.0", tk.END)
+    
+    # Ocultar el botón si existe
+    if tabla_simbolos_btn is not None:
+        tabla_simbolos_btn.pack_forget()
 
 # ==== Interfaz Tkinter ====
 root = tk.Tk()
